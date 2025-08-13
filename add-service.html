@@ -17,27 +17,6 @@
         .hidden {
             display: none;
         }
-        /* Custom styles for better UX */
-        .form-input, .form-select {
-            transition: all 0.3s ease-in-out;
-        }
-        .form-input:focus, .form-select:focus {
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3); /* Teal focus ring */
-            border-color: #0d9488;
-        }
-        .submit-button {
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .submit-button:hover {
-            transform: translateY(-2px);
-        }
-        .success-toast {
-            animation: fadeInOut 4s ease-in-out;
-        }
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; transform: translateY(20px); }
-            10%, 90% { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -59,25 +38,25 @@
                     <p class="text-gray-600 mt-2">شارك في إثراء الدليل ببياناتك ليتمكن الجميع من الوصول إليك بسهولة.</p>
                 </div>
                 <form id="add-person-form">
-                    <!-- Text fields -->
+                    <!-- Form fields... -->
                     <div class="mb-4">
                         <label for="full-name" class="block text-gray-700 font-bold mb-2">الاسم الثلاثي / اسم المحل *</label>
-                        <input type="text" id="full-name" class="w-full px-3 py-2 border rounded-lg focus:outline-none form-input" required>
+                        <input type="text" id="full-name" class="w-full px-3 py-2 border rounded-lg" required>
                     </div>
                     <div class="mb-4">
                         <label for="phone" class="block text-gray-700 font-bold mb-2">رقم الهاتف *</label>
-                        <input type="tel" id="phone" class="w-full px-3 py-2 border rounded-lg focus:outline-none form-input" required>
+                        <input type="tel" id="phone" class="w-full px-3 py-2 border rounded-lg" required>
                     </div>
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label for="whatsapp-phone" class="block text-gray-700 font-bold">رقم الواتساب (اختياري)</label>
                             <button type="button" id="same-number-btn" class="text-sm text-teal-600 hover:underline focus:outline-none">نفس رقم الهاتف</button>
                         </div>
-                        <input type="tel" id="whatsapp-phone" class="w-full px-3 py-2 border rounded-lg focus:outline-none form-input" placeholder="اتركه فارغاً إذا كان نفس رقم الهاتف">
+                        <input type="tel" id="whatsapp-phone" class="w-full px-3 py-2 border rounded-lg" placeholder="اتركه فارغاً إذا كان نفس رقم الهاتف">
                     </div>
                     <div class="mb-4">
                         <label for="profession" class="block text-gray-700 font-bold mb-2">المهنة / النشاط *</label>
-                        <select id="profession" class="w-full px-3 py-2 border bg-white rounded-lg focus:outline-none form-select" required>
+                        <select id="profession" class="w-full px-3 py-2 border bg-white rounded-lg" required>
                              <option value="" disabled selected>-- اختر الفئة --</option>
                             <optgroup label="خدمات طبية"><option value="طبيب">طبيب</option><option value="صيدلية">صيدلية</option></optgroup>
                             <optgroup label="فنيون وحرفيون (صنايعية)"><option value="كهربائي">كهربائي</option><option value="سباك">سباك</option><option value="نجار">نجار</option><option value="نقاش">نقاش (دهانات)</option><option value="حداد">حداد</option><option value="بنّاء">بنّاء</option><option value="مبلط سيراميك">مبلط سيراميك</option></optgroup>
@@ -85,8 +64,6 @@
                             <optgroup label="أخرى"><option value="مدرس">مدرس</option><option value="مهندس">مهندس</option><option value="سائق">سائق</option></optgroup>
                         </select>
                     </div>
-
-                    <!-- Image Upload -->
                     <div class="mb-4">
                         <label for="image-upload" class="block text-gray-700 font-bold mb-2">الصورة الشخصية / صورة المحل (اختياري)</label>
                         <div id="image-upload-box" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
@@ -101,19 +78,16 @@
                              <button type="button" id="remove-image-btn" class="mt-2 text-sm text-red-600 hover:underline">إزالة الصورة</button>
                         </div>
                     </div>
-
                     <div class="mb-4">
                         <label for="description" class="block text-gray-700 font-bold mb-2">الوصف (اختياري)</label>
-                        <textarea id="description" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none form-input" placeholder="مثال: مواعيد العمل من ٩ص إلى ٥م، متخصص في..."></textarea>
+                        <textarea id="description" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="مثال: مواعيد العمل من ٩ص إلى ٥م، متخصص في..."></textarea>
                     </div>
-                    
                     <div id="address-container" class="mb-6 hidden">
                         <label for="address" class="block text-gray-700 font-bold mb-2">العنوان (اختياري)</label>
-                        <input type="text" id="address" class="w-full px-3 py-2 border rounded-lg focus:outline-none form-input" placeholder="مثال: شارع السوق، بجوار المسجد الكبير">
+                        <input type="text" id="address" class="w-full px-3 py-2 border rounded-lg" placeholder="مثال: شارع السوق، بجوار المسجد الكبير">
                     </div>
-
-                    <button type="submit" id="submit-btn" class="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 flex items-center justify-center submit-button">
-                        <span id="submit-btn-text">إرسال البيانات</span>
+                    <button type="submit" id="submit-btn" class="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 flex items-center justify-center">
+                        <span id="submit-btn-text">إرسال البيانات للمراجعة</span>
                         <div id="submit-spinner" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden"></div>
                     </button>
                 </form>
@@ -121,36 +95,34 @@
         </div>
     </main>
 
-    <!-- Success/Error Message Container -->
     <div id="message-toast" class="fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg hidden"></div>
 
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        // --- Cloudinary Configuration ---
-        const CLOUDINARY_CLOUD_NAME = "dmv4i571b";
-        const CLOUDINARY_UPLOAD_PRESET = "iiymo4cr"; // <-- تم التحديث
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // !!! هام: الصق كود إعدادات Firebase الخاص بك هنا
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // --- Cloudinary Configuration ---
+        const CLOUDINARY_CLOUD_NAME = "dmv4i571b";
+        const CLOUDINARY_UPLOAD_PRESET = "iiymo4cr";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        async function authenticateUser() {
-            try {
-                if (initialAuthToken) { await signInWithCustomToken(auth, initialAuthToken); } 
-                else { await signInAnonymously(auth); }
-            } catch (error) { console.error("Authentication failed:", error); }
-        }
-        authenticateUser();
+        signInAnonymously(auth).catch(error => console.error("Anonymous auth failed:", error));
 
         // --- DOM Elements ---
         const addPersonForm = document.getElementById('add-person-form');
@@ -185,7 +157,7 @@
 
         removeImageBtn.addEventListener('click', () => {
             uploadedFile = null;
-            imageUploadInput.value = ''; // Clear the file input
+            imageUploadInput.value = '';
             imagePreviewContainer.classList.add('hidden');
             imageUploadBox.classList.remove('hidden');
         });
@@ -206,23 +178,16 @@
             setLoading(true);
 
             let imageUrl = '';
-            // 1. Upload image to Cloudinary if one is selected
             if (uploadedFile) {
                 const formData = new FormData();
                 formData.append('file', uploadedFile);
                 formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
                 try {
-                    const response = await fetch(CLOUDINARY_URL, {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await response.json();
                     if (data.secure_url) {
                         imageUrl = data.secure_url;
-                    } else {
-                        throw new Error('Image upload failed');
-                    }
+                    } else { throw new Error('Image upload failed'); }
                 } catch (error) {
                     console.error("Error uploading image:", error);
                     showMessage("حدث خطأ أثناء رفع الصورة. يرجى المحاولة مرة أخرى.", 'error');
@@ -231,10 +196,9 @@
                 }
             }
 
-            // 2. Save data to Firebase
             try {
-                const servicesCollection = collection(db, `artifacts/${appId}/public/data/services`);
-                await addDoc(servicesCollection, {
+                const pendingCollection = collection(db, "public/data/pending_services");
+                await addDoc(pendingCollection, {
                     name: document.getElementById('full-name').value,
                     phone: document.getElementById('phone').value,
                     whatsappPhone: document.getElementById('whatsapp-phone').value || document.getElementById('phone').value,
@@ -244,14 +208,11 @@
                     address: document.getElementById('address').value,
                     createdAt: new Date()
                 });
-
-                console.log("Document successfully written to Firestore!");
                 
                 addPersonForm.reset();
-                removeImageBtn.click(); // Reset image preview
+                removeImageBtn.click();
                 addressContainer.classList.add('hidden');
-                showMessage('تم إرسال بياناتك بنجاح!', 'success');
-
+                showMessage('تم إرسال بياناتك للمراجعة بنجاح! شكراً لك.', 'success');
             } catch (error) {
                 console.error("Error writing document: ", error);
                 showMessage("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.", 'error');
@@ -268,12 +229,8 @@
 
         function showMessage(text, type = 'success') {
             messageToast.textContent = text;
-            messageToast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg'; // Reset classes
-            if (type === 'success') {
-                messageToast.classList.add('bg-green-500', 'success-toast');
-            } else {
-                messageToast.classList.add('bg-red-500', 'success-toast');
-            }
+            messageToast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg';
+            messageToast.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
             messageToast.classList.remove('hidden');
             setTimeout(() => { messageToast.classList.add('hidden'); }, 4000);
         }

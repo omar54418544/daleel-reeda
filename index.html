@@ -83,7 +83,10 @@
                     </select>
                 </div>
                 
-                <div id="search-results" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="loading-indicator" class="text-center py-12">
+                    <p class="text-gray-500">جاري تحميل البيانات...</p>
+                </div>
+                <div id="search-results" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
 
                 <div id="load-more-container" class="text-center mt-12">
                     <button id="load-more-btn" class="bg-gray-700 text-white font-bold py-3 px-10 rounded-lg hover:bg-gray-800 transition hidden">عرض المزيد</button>
@@ -100,7 +103,6 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                        <!-- *** IMAGE UPDATED *** -->
                         <img src="images/schools-section.webp" alt="طلاب سعداء أمام مدرسة كرتونية" class="w-full aspect-square object-contain bg-teal-50 p-4">
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="font-bold text-xl mb-2">مدارس القرية</h3>
@@ -109,7 +111,6 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                        <!-- *** IMAGE UPDATED *** -->
                         <img src="images/quran-section.webp" alt="مصحف مفتوح يشع منه نور" class="w-full aspect-square object-contain bg-teal-50 p-4">
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="font-bold text-xl mb-2">تحفيظ القرآن الكريم</h3>
@@ -137,29 +138,40 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- Firebase Configuration ---
+        // !!! هام: الصق كود إعدادات Firebase الخاص بك هنا
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         async function authenticateUser() {
             try {
-                if (initialAuthToken) { await signInWithCustomToken(auth, initialAuthToken); } 
-                else { await signInAnonymously(auth); }
+                await signInAnonymously(auth);
                 console.log("Authentication successful.");
                 listenForServices();
-            } catch (error) { console.error("Authentication failed:", error); }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                document.getElementById('loading-indicator').textContent = 'فشل الاتصال بقاعدة البيانات.';
+            }
         }
         authenticateUser();
 
         const nameSearchInput = document.getElementById('name-search');
         const categoryFilter = document.getElementById('category-filter');
         const resultsContainer = document.getElementById('search-results');
+        const loadingIndicator = document.getElementById('loading-indicator');
         const loadMoreBtn = document.getElementById('load-more-btn');
         
         let allServicesData = [];
@@ -168,14 +180,19 @@
         let currentFilteredData = [];
 
         function listenForServices() {
-            const servicesCollection = collection(db, `artifacts/${appId}/public/data/services`);
+            const servicesCollection = collection(db, "public/data/services");
             const q = query(servicesCollection);
             onSnapshot(q, (querySnapshot) => {
                 allServicesData = [];
                 querySnapshot.forEach((doc) => {
                     allServicesData.push({ id: doc.id, ...doc.data() });
                 });
+                loadingIndicator.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
                 handleSearch(); 
+            }, (error) => {
+                console.error("Error fetching services: ", error);
+                loadingIndicator.textContent = 'حدث خطأ في جلب البيانات.';
             });
         }
 
@@ -223,7 +240,7 @@
             const dataToShow = currentFilteredData.slice(0, currentPage * ITEMS_PER_PAGE);
             renderCards(dataToShow);
             loadMoreBtn.classList.toggle('hidden', dataToShow.length >= currentFilteredData.length);
-            if (currentFilteredData.length === 0) {
+            if (currentFilteredData.length === 0 && allServicesData.length > 0) {
                  resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لهذا البحث.</p>`;
             }
         }
