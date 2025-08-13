@@ -137,7 +137,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -173,23 +173,23 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const loadMoreBtn = document.getElementById('load-more-btn');
         
-        let allServicesData = [];
+        let allApprovedServices = [];
         const ITEMS_PER_PAGE = 6;
         let currentPage = 1;
         let currentFilteredData = [];
 
         function listenForServices() {
             const servicesCollection = collection(db, "services");
-            const q = query(servicesCollection, where("isFeatured", "==", true));
+            const q = query(servicesCollection); // Fetch ALL services
 
             onSnapshot(q, (querySnapshot) => {
-                allServicesData = [];
+                allApprovedServices = [];
                 querySnapshot.forEach((doc) => {
-                    allServicesData.push({ id: doc.id, ...doc.data() });
+                    allApprovedServices.push({ id: doc.id, ...doc.data() });
                 });
                 loadingIndicator.classList.add('hidden');
                 resultsContainer.classList.remove('hidden');
-                handleSearch(); 
+                handleSearch(); // Initial display
             }, (error) => {
                 console.error("Error fetching services: ", error);
                 loadingIndicator.textContent = 'حدث خطأ في جلب البيانات.';
@@ -245,21 +245,26 @@
             }
         }
 
-        // *** SEARCH FUNCTION CORRECTED ***
+        // *** SEARCH FUNCTION LOGIC FINALIZED ***
         function handleSearch() {
             const selectedProfession = categoryFilter.value;
             const searchTerm = nameSearchInput.value.trim().toLowerCase();
             currentPage = 1;
 
-            // A single filter pass is cleaner and more reliable
-            currentFilteredData = allServicesData.filter(person => {
-                const categoryMatch = selectedProfession === 'all' || person.profession === selectedProfession;
-                // Ensure person.name exists before calling toLowerCase()
-                const nameMatch = !searchTerm || (person.name && person.name.toLowerCase().includes(searchTerm));
-                
-                return categoryMatch && nameMatch;
-            });
+            const isSearching = searchTerm !== '' || selectedProfession !== 'all';
 
+            if (isSearching) {
+                // If user is searching, filter ALL services
+                currentFilteredData = allApprovedServices.filter(person => {
+                    const categoryMatch = selectedProfession === 'all' || person.profession === selectedProfession;
+                    const nameMatch = !searchTerm || (person.name && person.name.toLowerCase().includes(searchTerm));
+                    return categoryMatch && nameMatch;
+                });
+            } else {
+                // If not searching (initial load), show only featured services
+                currentFilteredData = allApprovedServices.filter(person => person.isFeatured === true);
+            }
+            
             updateResults();
         }
 
