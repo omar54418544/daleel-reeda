@@ -17,10 +17,45 @@
         .menu-hidden, .hidden {
             display: none;
         }
-        .animated-gradient {
+        
+        /* --- Animated Background for Hero Section --- */
+        #hero {
+            position: relative;
+            overflow: hidden; /* Contain the animation */
+        }
+        .animated-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%; 
+            z-index: 1; /* Behind hero content */
             background: linear-gradient(-45deg, #e0f2f1, #b2dfdb, #80cbc4, #4db6ac);
             background-size: 400% 400%;
             animation: gradient-animation 15s ease infinite;
+        }
+        .animated-bg .circle {
+            position: absolute;
+            bottom: -150px;
+            background-color: rgba(255, 255, 255, 0.15); /* Lighter circles */
+            border-radius: 50%;
+            animation: rise 25s infinite linear;
+        }
+        .animated-bg .circle-sm { width: 100px; height: 100px; left: 5%; animation-duration: 22s; animation-delay: 0s; }
+        .animated-bg .circle-md { width: 200px; height: 200px; left: 25%; animation-duration: 18s; animation-delay: 2s; }
+        .animated-bg .circle-lg { width: 150px; height: 150px; left: 50%; animation-duration: 20s; animation-delay: 5s; }
+        .animated-bg .circle-xl { width: 250px; height: 250px; left: 75%; animation-duration: 15s; animation-delay: 1s; }
+        .animated-bg .circle-xs { width: 80px; height: 80px; left: 90%; animation-duration: 28s; animation-delay: 7s; }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-120vh) scale(0.5);
+                opacity: 0;
+            }
         }
         @keyframes gradient-animation {
             0% { background-position: 0% 50%; }
@@ -32,7 +67,7 @@
 <body class="bg-gray-50 text-gray-800">
 
     <!-- Header & Navigation Bar -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
+    <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="text-2xl font-bold text-teal-700">دليل قرية ريدة</a>
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
@@ -47,7 +82,7 @@
                 </button>
             </div>
         </nav>
-        <div id="mobile-menu" class="md:hidden menu-hidden bg-white">
+        <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
             <a href="#education" class="block py-2 px-4 text-sm hover:bg-teal-50">التعليم</a>
@@ -56,9 +91,17 @@
 
     <main>
         <!-- Hero Section -->
-        <section id="hero" class="relative animated-gradient text-white" style="height: 50vh;">
-            <div class="absolute inset-0 bg-black opacity-20"></div>
-            <div class="container mx-auto px-6 h-full flex flex-col justify-center items-center text-center relative z-10">
+        <section id="hero" class="relative text-white" style="height: 50vh;">
+            <!-- Animated Background Container -->
+            <div class="animated-bg">
+                <div class="circle circle-sm"></div>
+                <div class="circle circle-md"></div>
+                <div class="circle circle-lg"></div>
+                <div class="circle circle-xl"></div>
+                <div class="circle circle-xs"></div>
+            </div>
+            <div class="absolute inset-0 bg-black opacity-20 z-10"></div>
+            <div class="container mx-auto px-6 h-full flex flex-col justify-center items-center text-center relative z-20">
                 <h1 class="text-4xl md:text-6xl font-bold mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">أهلاً بكم في دليل قرية ريدة</h1>
                 <p class="text-lg md:text-xl mb-8 max-w-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية.</p>
                 <a href="#search-section" class="bg-white text-teal-700 font-bold py-3 px-8 rounded-full hover:bg-gray-200 shadow-lg transition duration-300">استكشف خدمات القرية</a>
@@ -76,10 +119,33 @@
                     <input type="text" id="name-search" placeholder="ابحث بالاسم..." class="w-full md:w-1/2 p-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg">
                     <select id="category-filter" class="w-full md:w-1/2 p-4 border bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg">
                         <option value="all">كل الفئات</option>
-                        <optgroup label="خدمات طبية"><option value="طبيب">أطباء</option><option value="صيدلية">صيدليات</option></optgroup>
-                        <optgroup label="فنيون وحرفيون (صنايعية)"><option value="كهربائي">كهربائي</option><option value="سباك">سباك</option><option value="نجار">نجار</option><option value="نقاش">نقاش (دهانات)</option><option value="حداد">حداد</option><option value="بنّاء">بنّاء</option><option value="مبلط سيراميك">مبلط سيراميك</option></optgroup>
-                        <optgroup label="محلات تجارية"><option value="سوبر ماركت">سوبر ماركت</option><option value="مخبز">مخبز</option><option value="جزار">جزار</option></optgroup>
-                        <optgroup label="أخرى"><option value="مدرس">مدرس</option><option value="مهندس">مهندس</option><option value="سائق">سائق</option></optgroup>
+                        <optgroup label="خدمات طبية">
+                            <option value="طبيب">أطباء</option>
+                            <option value="صيدلية">صيدليات</option>
+                            <option value="ممرض">ممرض</option>
+                        </optgroup>
+                        <optgroup label="فنيون وحرفيون (صنايعية)">
+                            <option value="كهربائي">كهربائي</option>
+                            <option value="سباك">سباك</option>
+                            <option value="نجار">نجار</option>
+                            <option value="نقاش">نقاش (دهانات)</option>
+                            <option value="حداد">حداد</option>
+                            <option value="بنّاء">بنّاء</option>
+                            <option value="مبلط سيراميك">مبلط سيراميك</option>
+                            <option value="مبيض محارة">مبيض محارة</option>
+                        </optgroup>
+                        <optgroup label="محلات تجارية">
+                            <option value="سوبر ماركت">سوبر ماركت</option>
+                            <option value="مخبز">مخبز</option>
+                            <option value="جزار">جزار</option>
+                        </optgroup>
+                        <optgroup label="شخصيات وخدمات عامة">
+                            <option value="شخصية هامة">شخصيات هامة</option>
+                            <option value="مدرس">مدرس</option>
+                            <option value="مهندس">مهندس</option>
+                            <option value="سائق">سائق</option>
+                            <option value="other_filter">مهن أخرى</option>
+                        </optgroup>
                     </select>
                 </div>
                 
@@ -126,6 +192,15 @@
     <!-- Footer -->
     <footer id="contact" class="bg-gray-800 text-white pt-12 pb-6">
         <div class="container mx-auto px-6 text-center">
+            <!-- New Footer Content -->
+            <div class="mb-8">
+                <div class="flex justify-center items-center gap-4 md:gap-6 flex-wrap">
+                    <a href="https://www.facebook.com/groups/237594880691821" target="_blank" class="text-gray-400 hover:text-white transition">جروب قرية ريدة الرسمي</a>
+                    <span class="text-gray-600 hidden md:block">|</span>
+                    <a href="https://www.facebook.com/omarr.fathy" target="_blank" class="text-gray-400 hover:text-white transition">تصميم وبرمجة: OMAR FATHY</a>
+                </div>
+            </div>
+            <!-- Copyright -->
             <p class="text-gray-500">&copy; ٢٠٢٥ - جميع الحقوق محفوظة لدليل قرية ريدة.</p>
         </div>
     </footer>
@@ -173,6 +248,7 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const loadMoreBtn = document.getElementById('load-more-btn');
         
+        const standardProfessions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
         let allApprovedServices = [];
         const ITEMS_PER_PAGE = 6;
         let currentPage = 1;
@@ -254,9 +330,17 @@
             const isSearching = searchTerm !== '' || selectedProfession !== 'all';
 
             if (isSearching) {
-                // If user is searching, filter ALL services
                 currentFilteredData = allApprovedServices.filter(person => {
-                    const categoryMatch = selectedProfession === 'all' || person.profession === selectedProfession;
+                    let categoryMatch;
+                    if (selectedProfession === 'all') {
+                        categoryMatch = true;
+                    } else if (selectedProfession === 'other_filter') {
+                        // Show professions that are NOT in the standard list
+                        categoryMatch = !standardProfessions.includes(person.profession);
+                    } else {
+                        categoryMatch = person.profession === selectedProfession;
+                    }
+                    
                     const nameMatch = !searchTerm || (person.name && person.name.toLowerCase().includes(searchTerm));
                     return categoryMatch && nameMatch;
                 });

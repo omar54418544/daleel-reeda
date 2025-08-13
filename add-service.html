@@ -58,11 +58,39 @@
                         <label for="profession" class="block text-gray-700 font-bold mb-2">المهنة / النشاط *</label>
                         <select id="profession" class="w-full px-3 py-2 border bg-white rounded-lg" required>
                              <option value="" disabled selected>-- اختر الفئة --</option>
-                            <optgroup label="خدمات طبية"><option value="طبيب">طبيب</option><option value="صيدلية">صيدلية</option></optgroup>
-                            <optgroup label="فنيون وحرفيون (صنايعية)"><option value="كهربائي">كهربائي</option><option value="سباك">سباك</option><option value="نجار">نجار</option><option value="نقاش">نقاش (دهانات)</option><option value="حداد">حداد</option><option value="بنّاء">بنّاء</option><option value="مبلط سيراميك">مبلط سيراميك</option></optgroup>
-                            <optgroup label="محلات تجارية"><option value="سوبر ماركت">سوبر ماركت</option><option value="مخبز">مخبز</option><option value="جزار">جزار</option></optgroup>
-                            <optgroup label="أخرى"><option value="مدرس">مدرس</option><option value="مهندس">مهندس</option><option value="سائق">سائق</option></optgroup>
+                            <optgroup label="خدمات طبية">
+                                <option value="طبيب">طبيب</option>
+                                <option value="صيدلية">صيدلية</option>
+                                <option value="ممرض">ممرض</option>
+                            </optgroup>
+                            <optgroup label="فنيون وحرفيون (صنايعية)">
+                                <option value="كهربائي">كهربائي</option>
+                                <option value="سباك">سباك</option>
+                                <option value="نجار">نجار</option>
+                                <option value="نقاش">نقاش (دهانات)</option>
+                                <option value="حداد">حداد</option>
+                                <option value="بنّاء">بنّاء</option>
+                                <option value="مبلط سيراميك">مبلط سيراميك</option>
+                                <option value="مبيض محارة">مبيض محارة</option>
+                            </optgroup>
+                            <optgroup label="محلات تجارية">
+                                <option value="سوبر ماركت">سوبر ماركت</option>
+                                <option value="مخبز">مخبز</option>
+                                <option value="جزار">جزار</option>
+                            </optgroup>
+                            <optgroup label="شخصيات وخدمات عامة">
+                                <option value="شخصية هامة">شخصية هامة</option>
+                                <option value="مدرس">مدرس</option>
+                                <option value="مهندس">مهندس</option>
+                                <option value="سائق">سائق</option>
+                                <option value="other_input">مهنة أخرى...</option>
+                            </optgroup>
                         </select>
+                    </div>
+                    <!-- New input for other profession -->
+                    <div id="other-profession-container" class="mb-4 hidden">
+                        <label for="other-profession" class="block text-gray-700 font-bold mb-2">يرجى تحديد المهنة *</label>
+                        <input type="text" id="other-profession" class="w-full px-3 py-2 border rounded-lg" placeholder="مثال: خطاط، رسام...">
                     </div>
                     <div class="mb-4">
                         <label for="image-upload" class="block text-gray-700 font-bold mb-2">الصورة الشخصية / صورة المحل (اختياري)</label>
@@ -126,6 +154,8 @@
         // --- DOM Elements ---
         const addPersonForm = document.getElementById('add-person-form');
         const professionSelect = document.getElementById('profession');
+        const otherProfessionContainer = document.getElementById('other-profession-container');
+        const otherProfessionInput = document.getElementById('other-profession');
         const addressContainer = document.getElementById('address-container');
         const imageUploadInput = document.getElementById('image-upload');
         const imageUploadBox = document.getElementById('image-upload-box');
@@ -169,12 +199,31 @@
         const professionsWithAddress = ['طبيب', 'صيدلية', 'سوبر ماركت', 'مخبز', 'جزار'];
         professionSelect.addEventListener('change', (e) => {
             addressContainer.classList.toggle('hidden', !professionsWithAddress.includes(e.target.value));
+            
+            // Show/hide other profession input
+            if (e.target.value === 'other_input') {
+                otherProfessionContainer.classList.remove('hidden');
+                otherProfessionInput.required = true;
+            } else {
+                otherProfessionContainer.classList.add('hidden');
+                otherProfessionInput.required = false;
+            }
         });
 
         // --- Form Submission ---
         addPersonForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             setLoading(true);
+
+            let professionValue = professionSelect.value;
+            if (professionValue === 'other_input') {
+                professionValue = otherProfessionInput.value.trim();
+                if (!professionValue) {
+                    alert("يرجى تحديد المهنة الأخرى.");
+                    setLoading(false);
+                    return;
+                }
+            }
 
             let imageUrl = '';
             if (uploadedFile) {
@@ -196,13 +245,12 @@
             }
 
             try {
-                // *** PATH CORRECTED ***
                 const pendingCollection = collection(db, "pending_services");
                 await addDoc(pendingCollection, {
                     name: document.getElementById('full-name').value,
                     phone: document.getElementById('phone').value,
                     whatsappPhone: document.getElementById('whatsapp-phone').value || document.getElementById('phone').value,
-                    profession: professionSelect.value,
+                    profession: professionValue,
                     imageUrl: imageUrl,
                     description: document.getElementById('description').value,
                     address: document.getElementById('address').value,
@@ -212,6 +260,7 @@
                 addPersonForm.reset();
                 removeImageBtn.click();
                 addressContainer.classList.add('hidden');
+                otherProfessionContainer.classList.add('hidden');
                 showMessage('تم إرسال بياناتك للمراجعة بنجاح! شكراً لك.', 'success');
             } catch (error) {
                 console.error("Error writing document: ", error);

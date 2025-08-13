@@ -140,7 +140,7 @@
         
         // --- Basic Config ---
         const ADMIN_PASSWORD = "reeda2025";
-        const professions = ["طبيب", "صيدلية", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "سوبر ماركت", "مخبز", "جزار", "مدرس", "مهندس", "سائق"];
+        const professions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -291,11 +291,19 @@
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                const editSelect = document.getElementById('edit-profession');
+                
+                // If the profession is custom, add it to the dropdown temporarily
+                if (!professions.includes(data.profession)) {
+                    const customOption = new Option(data.profession, data.profession, true, true);
+                    editSelect.add(customOption);
+                }
+
                 document.getElementById('edit-id').value = entryId;
                 document.getElementById('edit-name').value = data.name || '';
                 document.getElementById('edit-phone').value = data.phone || '';
                 document.getElementById('edit-whatsapp').value = data.whatsappPhone || '';
-                document.getElementById('edit-profession').value = data.profession || '';
+                editSelect.value = data.profession || '';
                 document.getElementById('edit-description').value = data.description || '';
                 document.getElementById('edit-address').value = data.address || '';
                 editModal.classList.remove('hidden');
@@ -332,8 +340,8 @@
             const container = document.getElementById('approved-list');
             const searchTerm = approvedSearchInput.value.toLowerCase();
             const filteredData = allApprovedData.filter(p => 
-                p.name.toLowerCase().includes(searchTerm) || 
-                p.profession.toLowerCase().includes(searchTerm)
+                (p.name && p.name.toLowerCase().includes(searchTerm)) || 
+                (p.profession && p.profession.toLowerCase().includes(searchTerm))
             );
             
             container.innerHTML = '';
@@ -387,6 +395,7 @@
 
         function populateProfessionSelects() {
             const editSelect = document.getElementById('edit-profession');
+            editSelect.innerHTML = ''; // Clear previous options
             professions.forEach(p => {
                 const option = new Option(p, p);
                 editSelect.add(option.cloneNode(true));
