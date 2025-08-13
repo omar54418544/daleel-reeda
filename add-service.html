@@ -125,9 +125,22 @@
 
     <div id="message-toast" class="fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg hidden"></div>
 
+    <!-- Update Info Modal -->
+    <div id="update-info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+            <svg class="mx-auto h-16 w-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2 class="text-2xl font-bold my-4">الرقم مسجل بالفعل!</h2>
+            <p class="text-gray-600 mb-6">يبدو أن رقم هاتفك موجود بالفعل في الدليل. إذا كنت ترغب في تحديث بياناتك، يرجى التواصل مع مدير الموقع.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://www.facebook.com/omarr.fathy" target="_blank" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition">التواصل عبر فيسبوك</a>
+                <button type="button" id="close-update-modal-btn" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -166,6 +179,8 @@
         const submitBtnText = document.getElementById('submit-btn-text');
         const submitSpinner = document.getElementById('submit-spinner');
         const messageToast = document.getElementById('message-toast');
+        const updateInfoModal = document.getElementById('update-info-modal');
+        const closeUpdateModalBtn = document.getElementById('close-update-modal-btn');
 
         let uploadedFile = null;
 
@@ -209,10 +224,51 @@
             }
         });
 
+        closeUpdateModalBtn.addEventListener('click', () => {
+            updateInfoModal.classList.add('hidden');
+        });
+
         // --- Form Submission ---
         addPersonForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             setLoading(true);
+
+            const phoneValue = document.getElementById('phone').value.trim();
+            if (!phoneValue) {
+                showMessage("يرجى إدخال رقم الهاتف.", 'error');
+                setLoading(false);
+                return;
+            }
+
+            // --- Check for existing phone number ---
+            try {
+                const servicesRef = collection(db, "services");
+                const qServices = query(servicesRef, where("phone", "==", phoneValue));
+                const servicesSnapshot = await getDocs(qServices);
+
+                if (!servicesSnapshot.empty) {
+                    updateInfoModal.classList.remove('hidden');
+                    setLoading(false);
+                    return;
+                }
+
+                const pendingServicesRef = collection(db, "pending_services");
+                const qPending = query(pendingServicesRef, where("phone", "==", phoneValue));
+                const pendingSnapshot = await getDocs(qPending);
+
+                if (!pendingSnapshot.empty) {
+                    showMessage("هذا الرقم تم إرساله وهو قيد المراجعة حالياً.", 'error');
+                    setLoading(false);
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking phone number:", error);
+                showMessage("حدث خطأ أثناء التحقق من الرقم. يرجى المحاولة مرة أخرى.", 'error');
+                setLoading(false);
+                return;
+            }
+            // --- End check ---
+
 
             let professionValue = professionSelect.value;
             if (professionValue === 'other_input') {
@@ -247,8 +303,8 @@
                 const pendingCollection = collection(db, "pending_services");
                 await addDoc(pendingCollection, {
                     name: document.getElementById('full-name').value,
-                    phone: document.getElementById('phone').value,
-                    whatsappPhone: document.getElementById('whatsapp-phone').value || document.getElementById('phone').value,
+                    phone: phoneValue,
+                    whatsappPhone: document.getElementById('whatsapp-phone').value || phoneValue,
                     profession: professionValue,
                     imageUrl: imageUrl,
                     description: document.getElementById('description').value,
@@ -261,18 +317,16 @@
                 addressContainer.classList.add('hidden');
                 otherProfessionContainer.classList.add('hidden');
                 
-                // Show success message and redirect
                 showMessage('تم إرسال بياناتك للمراجعة بنجاح! سيتم تحويلك الآن للصفحة الرئيسية.', 'success');
                 setTimeout(() => {
                     window.location.href = 'index.html';
-                }, 3000); // Redirect after 3 seconds
+                }, 3000);
 
             } catch (error) {
                 console.error("Error writing document: ", error);
                 showMessage("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.", 'error');
                 setLoading(false);
             } 
-            // No finally block needed here for setLoading, as redirect will happen on success
         });
 
         function setLoading(isLoading) {
@@ -287,7 +341,6 @@
             messageToast.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
             messageToast.classList.remove('hidden');
             
-            // Don't auto-hide if we are redirecting
             if (type !== 'success') {
                 setTimeout(() => { messageToast.classList.add('hidden'); }, 4000);
             }
