@@ -103,14 +103,13 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        // !!! هام: الصق كود إعدادات Firebase الخاص بك هنا
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
         };
         
         // --- Cloudinary Configuration ---
@@ -197,7 +196,8 @@
             }
 
             try {
-                const pendingCollection = collection(db, "public/data/pending_services");
+                // *** PATH CORRECTED ***
+                const pendingCollection = collection(db, "pending_services");
                 await addDoc(pendingCollection, {
                     name: document.getElementById('full-name').value,
                     phone: document.getElementById('phone').value,

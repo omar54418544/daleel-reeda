@@ -141,14 +141,13 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        // !!! هام: الصق كود إعدادات Firebase الخاص بك هنا
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
         };
 
         // Initialize Firebase
@@ -180,7 +179,8 @@
         let currentFilteredData = [];
 
         function listenForServices() {
-            const servicesCollection = collection(db, "public/data/services");
+            // *** PATH CORRECTED ***
+            const servicesCollection = collection(db, "services");
             const q = query(servicesCollection);
             onSnapshot(q, (querySnapshot) => {
                 allServicesData = [];
@@ -197,6 +197,7 @@
         }
 
         function renderCards(data) {
+            resultsContainer.innerHTML = ''; // Clear previous results before rendering new ones
             data.forEach((person) => {
                 const uniqueId = `phone-${person.id}`;
                 const whatsappLinkNumber = `2${person.whatsappPhone}`;
@@ -236,11 +237,10 @@
         }
 
         function updateResults() {
-            resultsContainer.innerHTML = '';
             const dataToShow = currentFilteredData.slice(0, currentPage * ITEMS_PER_PAGE);
             renderCards(dataToShow);
             loadMoreBtn.classList.toggle('hidden', dataToShow.length >= currentFilteredData.length);
-            if (currentFilteredData.length === 0 && allServicesData.length > 0) {
+            if (resultsContainer.innerHTML === '') {
                  resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لهذا البحث.</p>`;
             }
         }
