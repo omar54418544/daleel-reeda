@@ -18,10 +18,9 @@
             display: none;
         }
         
-        /* --- Animated Background for Hero Section --- */
         #hero {
             position: relative;
-            overflow: hidden; /* Contain the animation */
+            overflow: hidden;
         }
         .animated-bg {
             position: absolute;
@@ -29,7 +28,7 @@
             left: 0;
             width: 100%;
             height: 100%; 
-            z-index: 1; /* Behind hero content */
+            z-index: 1;
             background: linear-gradient(-45deg, #e0f2f1, #b2dfdb, #80cbc4, #4db6ac);
             background-size: 400% 400%;
             animation: gradient-animation 15s ease infinite;
@@ -37,7 +36,7 @@
         .animated-bg .circle {
             position: absolute;
             bottom: -150px;
-            background-color: rgba(255, 255, 255, 0.15); /* Lighter circles */
+            background-color: rgba(255, 255, 255, 0.15);
             border-radius: 50%;
             animation: rise 25s infinite linear;
         }
@@ -48,14 +47,8 @@
         .animated-bg .circle-xs { width: 80px; height: 80px; left: 90%; animation-duration: 28s; animation-delay: 7s; }
 
         @keyframes rise {
-            0% {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-120vh) scale(0.5);
-                opacity: 0;
-            }
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-120vh) scale(0.5); opacity: 0; }
         }
         @keyframes gradient-animation {
             0% { background-position: 0% 50%; }
@@ -187,6 +180,16 @@
                 </div>
             </div>
         </section>
+        
+        <!-- Image Viewer Modal -->
+        <div id="image-viewer-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden p-4 transition-opacity duration-300">
+            <div class="relative bg-white p-2 rounded-lg max-w-lg w-full">
+                <button id="close-modal-btn" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-800 shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <img id="modal-image" src="" alt="معاينة الصورة" class="w-full h-auto max-h-[80vh] object-contain rounded">
+            </div>
+        </div>
     </main>
 
     <!-- Footer -->
@@ -212,7 +215,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -247,6 +250,9 @@
         const resultsContainer = document.getElementById('search-results');
         const loadingIndicator = document.getElementById('loading-indicator');
         const loadMoreBtn = document.getElementById('load-more-btn');
+        const imageViewerModal = document.getElementById('image-viewer-modal');
+        const modalImage = document.getElementById('modal-image');
+        const closeModalBtn = document.getElementById('close-modal-btn');
         
         const standardProfessions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
         let allApprovedServices = [];
@@ -256,7 +262,7 @@
 
         function listenForServices() {
             const servicesCollection = collection(db, "services");
-            const q = query(servicesCollection); // Fetch ALL services
+            const q = query(servicesCollection, orderBy("createdAt", "desc")); // Fetch ALL services, ordered by newest first
 
             onSnapshot(q, (querySnapshot) => {
                 allApprovedServices = [];
@@ -279,7 +285,9 @@
                 const whatsappLinkNumber = `2${person.whatsappPhone}`;
                 
                 const imageOrIcon = person.imageUrl
-                    ? `<img src="${person.imageUrl}" alt="${person.name}" class="w-24 h-24 rounded-lg mx-auto mb-4 object-contain border-2 border-gray-200 bg-gray-50">`
+                    ? `<button onclick="openImageModal('${person.imageUrl}')" class="w-24 h-24 rounded-lg mx-auto mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                           <img src="${person.imageUrl}" alt="${person.name}" class="w-full h-full object-contain border-2 border-gray-200 bg-gray-50 rounded-lg">
+                       </button>`
                     : `<div class="w-24 h-24 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center mb-4 mx-auto border-2 border-gray-200">
                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                        </div>`;
@@ -321,7 +329,6 @@
             }
         }
 
-        // *** SEARCH FUNCTION LOGIC FINALIZED ***
         function handleSearch() {
             const selectedProfession = categoryFilter.value;
             const searchTerm = nameSearchInput.value.trim().toLowerCase();
@@ -335,7 +342,6 @@
                     if (selectedProfession === 'all') {
                         categoryMatch = true;
                     } else if (selectedProfession === 'other_filter') {
-                        // Show professions that are NOT in the standard list
                         categoryMatch = !standardProfessions.includes(person.profession);
                     } else {
                         categoryMatch = person.profession === selectedProfession;
@@ -345,8 +351,8 @@
                     return categoryMatch && nameMatch;
                 });
             } else {
-                // If not searching (initial load), show only featured services
-                currentFilteredData = allApprovedServices.filter(person => person.isFeatured === true);
+                // If not searching (initial load), show the latest 6 services overall
+                currentFilteredData = allApprovedServices.slice(0, 6);
             }
             
             updateResults();
@@ -365,6 +371,23 @@
             input.select();
             document.execCommand('copy');
         }
+
+        // --- Image Modal Logic ---
+        window.openImageModal = function(imageUrl) {
+            if (!imageUrl) return;
+            modalImage.src = imageUrl;
+            imageViewerModal.classList.remove('hidden');
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            imageViewerModal.classList.add('hidden');
+        });
+
+        imageViewerModal.addEventListener('click', (e) => {
+            if (e.target === imageViewerModal) {
+                imageViewerModal.classList.add('hidden');
+            }
+        });
     </script>
 
 </body>

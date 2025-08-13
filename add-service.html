@@ -200,7 +200,6 @@
         professionSelect.addEventListener('change', (e) => {
             addressContainer.classList.toggle('hidden', !professionsWithAddress.includes(e.target.value));
             
-            // Show/hide other profession input
             if (e.target.value === 'other_input') {
                 otherProfessionContainer.classList.remove('hidden');
                 otherProfessionInput.required = true;
@@ -219,7 +218,7 @@
             if (professionValue === 'other_input') {
                 professionValue = otherProfessionInput.value.trim();
                 if (!professionValue) {
-                    alert("يرجى تحديد المهنة الأخرى.");
+                    showMessage("يرجى تحديد المهنة الأخرى.", 'error');
                     setLoading(false);
                     return;
                 }
@@ -261,13 +260,19 @@
                 removeImageBtn.click();
                 addressContainer.classList.add('hidden');
                 otherProfessionContainer.classList.add('hidden');
-                showMessage('تم إرسال بياناتك للمراجعة بنجاح! شكراً لك.', 'success');
+                
+                // Show success message and redirect
+                showMessage('تم إرسال بياناتك للمراجعة بنجاح! سيتم تحويلك الآن للصفحة الرئيسية.', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000); // Redirect after 3 seconds
+
             } catch (error) {
                 console.error("Error writing document: ", error);
                 showMessage("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.", 'error');
-            } finally {
                 setLoading(false);
-            }
+            } 
+            // No finally block needed here for setLoading, as redirect will happen on success
         });
 
         function setLoading(isLoading) {
@@ -281,7 +286,11 @@
             messageToast.className = 'fixed bottom-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg';
             messageToast.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
             messageToast.classList.remove('hidden');
-            setTimeout(() => { messageToast.classList.add('hidden'); }, 4000);
+            
+            // Don't auto-hide if we are redirecting
+            if (type !== 'success') {
+                setTimeout(() => { messageToast.classList.add('hidden'); }, 4000);
+            }
         }
     </script>
 </body>
