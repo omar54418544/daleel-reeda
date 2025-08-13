@@ -137,7 +137,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -179,9 +179,9 @@
         let currentFilteredData = [];
 
         function listenForServices() {
-            // *** PATH CORRECTED ***
             const servicesCollection = collection(db, "services");
-            const q = query(servicesCollection);
+            const q = query(servicesCollection, where("isFeatured", "==", true));
+
             onSnapshot(q, (querySnapshot) => {
                 allServicesData = [];
                 querySnapshot.forEach((doc) => {
@@ -241,22 +241,25 @@
             renderCards(dataToShow);
             loadMoreBtn.classList.toggle('hidden', dataToShow.length >= currentFilteredData.length);
             if (resultsContainer.innerHTML === '') {
-                 resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لهذا البحث.</p>`;
+                 resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لبحثك.</p>`;
             }
         }
 
+        // *** SEARCH FUNCTION CORRECTED ***
         function handleSearch() {
             const selectedProfession = categoryFilter.value;
             const searchTerm = nameSearchInput.value.trim().toLowerCase();
             currentPage = 1;
-            let filteredData = allServicesData;
-            if (selectedProfession !== 'all') {
-                filteredData = filteredData.filter(p => p.profession === selectedProfession);
-            }
-            if (searchTerm) {
-                filteredData = filteredData.filter(p => p.name.toLowerCase().includes(searchTerm));
-            }
-            currentFilteredData = filteredData;
+
+            // A single filter pass is cleaner and more reliable
+            currentFilteredData = allServicesData.filter(person => {
+                const categoryMatch = selectedProfession === 'all' || person.profession === selectedProfession;
+                // Ensure person.name exists before calling toLowerCase()
+                const nameMatch = !searchTerm || (person.name && person.name.toLowerCase().includes(searchTerm));
+                
+                return categoryMatch && nameMatch;
+            });
+
             updateResults();
         }
 
