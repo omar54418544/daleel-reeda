@@ -84,9 +84,6 @@
                 transform: rotate(360deg);
             }
         }
-        #install-banner, #ios-install-banner {
-            transition: transform 0.3s ease-in-out;
-        }
         .featured-card {
             border: 2px solid #f59e0b;
             position: relative;
@@ -111,19 +108,15 @@
         #search-results {
             transition: opacity 0.5s ease-in-out;
         }
-        /* ## NEW: Style to move FAB up when banner is visible */
-        .fab {
-            transition: bottom 0.3s ease-in-out;
-        }
-        body.banner-visible .fab {
-            bottom: 6.5rem; /* ~104px, to be above the install banner */
+        main {
+            padding-top: 56px; 
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
     <!-- Header & Navigation Bar -->
-    <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
+    <header class="bg-white/80 backdrop-blur-sm shadow-md fixed top-0 w-full z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="text-xl md:text-2xl font-bold text-teal-700">خدمات قرية ريدة اونلاين</a>
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
@@ -146,6 +139,14 @@
         </div>
     </header>
 
+    <!-- Sticky "Add Yourself" Banner -->
+    <section id="add-service-banner" class="fixed top-[68px] w-full z-40 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-2 flex items-center justify-center text-center">
+            <p class="font-bold text-sm md:text-base">هل تقدم خدمة أو لديك نشاط تجاري؟</p>
+            <a href="add-service.html" class="mr-4 bg-white text-orange-600 font-bold py-1 px-4 rounded-full text-sm hover:bg-gray-200 transition-colors duration-300">أضف نفسك للدليل الآن</a>
+        </div>
+    </section>
+
     <main>
         <!-- Hero Section -->
         <section id="hero" class="relative text-white" style="height: 50vh;">
@@ -159,8 +160,15 @@
             <div class="absolute inset-0 bg-black opacity-20 z-10"></div>
             <div class="container mx-auto px-6 h-full flex flex-col justify-center items-center text-center relative z-20">
                 <h1 class="text-4xl md:text-6xl font-bold mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">أهلاً بكم في خدمات قرية ريدة اونلاين</h1>
-                <p class="text-lg md:text-xl mb-8 max-w-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية.</p>
-                <a href="#search-section" class="bg-white text-teal-700 font-bold py-3 px-8 rounded-full hover:bg-gray-200 shadow-lg transition duration-300">استكشف خدمات القرية</a>
+                <p class="text-lg md:text-xl mb-6 max-w-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية.</p>
+                <!-- ## MODIFIED: Button group for actions -->
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <a href="#search-section" class="bg-white text-teal-700 font-bold py-3 px-8 rounded-full hover:bg-gray-200 shadow-lg transition duration-300">استكشف خدمات القرية</a>
+                    <a href="https://daleel-reeda.vercel.app/reedah.apk" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full hover:bg-green-600 shadow-lg transition duration-300 flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        <span>تحميل تطبيق القرية</span>
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -310,30 +318,26 @@
         </div>
     </footer>
 
-    <!-- ## MODIFIED: Added "fab" class to the floating button -->
-    <a href="add-service.html" class="fab fixed bottom-6 left-6 z-40 bg-orange-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300" title="أضف نفسك للدليل">
-        <i class="fas fa-plus fa-2x"></i>
-    </a>
-
-    <!-- Install Prompt Banners & Modals -->
-    <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex items-center justify-between transform translate-y-full shadow-lg z-50">
+    <!-- APK Download Banner -->
+    <div id="apk-download-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-3 flex items-center justify-between shadow-lg z-40 md:hidden">
         <div class="flex items-center">
-            <img src="icons/icon-192x192.png" alt="App Icon" class="w-12 h-12 rounded-lg ml-4">
+            <img src="icons/icon-192x192.png" alt="App Icon" class="w-10 h-10 rounded-lg ml-3">
             <div>
                 <h3 class="font-bold">حمّل تطبيق القرية على هاتفك</h3>
-                <p class="text-sm text-gray-300">وصول أسرع لكل الخدمات.</p>
+                <p class="text-sm text-gray-300">نسخة أندرويد خاصة.</p>
             </div>
         </div>
-        <button id="install-btn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition flex items-center gap-2">
+        <a href="https://daleel-reeda.vercel.app/reedah.apk" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition flex items-center gap-2">
             <i class="fas fa-download"></i>
-            <span>تثبيت</span>
-        </button>
+            <span>تحميل</span>
+        </a>
     </div>
-    
+
+    <!-- In-App and iOS Banners -->
     <div id="in-app-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
             <h2 class="text-2xl font-bold mb-4">فتح في المتصفح</h2>
-            <p class="text-gray-600 mb-4">لأفضل تجربة وتثبيت التطبيق، يرجى فتح الموقع في متصفحك الأساسي.</p>
+            <p class="text-gray-600 mb-4">لأفضل تجربة، يرجى فتح الموقع في متصفحك الأساسي.</p>
             <img src="images/open-in-browser.gif" alt="How to open in browser" class="w-full rounded-lg mb-6 border">
             <button id="close-in-app-modal-btn" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition">فهمت</button>
         </div>
@@ -358,9 +362,6 @@
                 });
             }
 
-            let deferredPrompt;
-            const installBanner = document.getElementById('install-banner');
-            const installBtn = document.getElementById('install-btn');
             const inAppModal = document.getElementById('in-app-modal');
             const closeInAppModalBtn = document.getElementById('close-in-app-modal-btn');
             const iosInstallBanner = document.getElementById('ios-install-banner');
@@ -372,29 +373,9 @@
             if (isInApp) { inAppModal.classList.remove('hidden'); }
             else if (isIOS() && !window.navigator.standalone) {
                 iosInstallBanner.style.transform = 'translateY(0)';
-                document.body.classList.add('banner-visible'); // ## ADDED
             }
 
             closeInAppModalBtn.addEventListener('click', () => inAppModal.classList.add('hidden'));
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (!isInApp && !isIOS()) {
-                    installBanner.style.transform = 'translateY(0)';
-                    document.body.classList.add('banner-visible'); // ## ADDED
-                }
-            });
-
-            installBtn.addEventListener('click', async () => {
-                installBanner.style.transform = 'translateY(100%)';
-                document.body.classList.remove('banner-visible'); // ## ADDED
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    await deferredPrompt.userChoice;
-                    deferredPrompt = null;
-                }
-            });
         }
         setupPWA();
 
