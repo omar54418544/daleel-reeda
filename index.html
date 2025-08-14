@@ -8,6 +8,7 @@
     <!-- PWA Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d9488">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
     <!-- Social Media Sharing Tags -->
     <meta property="og:title" content="خدمات قرية ريدة اونلاين | كل خدمات القرية في مكان واحد" />
@@ -85,6 +86,10 @@
             to {
                 transform: rotate(360deg);
             }
+        }
+        /* --- Install Prompt Banner --- */
+        #install-banner {
+            transition: transform 0.3s ease-in-out;
         }
     </style>
 </head>
@@ -278,10 +283,17 @@
         </div>
     </footer>
 
-    <!-- Floating Action Button (Mobile Only) -->
-    <a href="add-service.html" class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white font-bold px-6 py-3 rounded-full flex items-center justify-center shadow-lg z-40" aria-label="أضف نفسك للدليل">
-        أضف نفسك للدليل
-    </a>
+    <!-- Install Prompt Banner -->
+    <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex items-center justify-between transform translate-y-full shadow-lg z-50">
+        <div class="flex items-center">
+            <img src="icons/icon-192x192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-4">
+            <div>
+                <h3 class="font-bold">تثبيت دليل ريدة</h3>
+                <p class="text-sm text-gray-300">أضف التطبيق لشاشتك الرئيسية لسهولة الوصول.</p>
+            </div>
+        </div>
+        <button id="install-btn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition">تثبيت</button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -298,6 +310,27 @@
                 });
             });
         }
+
+        // --- Install Prompt Logic ---
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.transform = 'translateY(0)';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            installBanner.style.transform = 'translateY(100%)';
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
