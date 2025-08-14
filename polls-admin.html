@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الاستطلاعات - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .hidden { display: none; }
+        .poll-option-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-4 text-center">دخول لوحة التحكم</h2>
+            <p class="text-center text-gray-600 mb-6">الرجاء إدخال كلمة المرور للمتابعة.</p>
+            <form id="password-form">
+                <input type="password" id="password-input" class="w-full px-4 py-2 border rounded-lg mb-4 text-center" placeholder="كلمة المرور">
+                <button type="submit" class="w-full bg-teal-600 text-white font-bold py-2 rounded-lg hover:bg-teal-700">دخول</button>
+                <p id="error-message" class="text-red-500 text-sm text-center mt-2 hidden">كلمة المرور غير صحيحة.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Admin Content (Initially Hidden) -->
+    <main id="admin-content" class="hidden container mx-auto px-6 py-8">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">إدارة الاستطلاعات</h1>
+            <a href="index.html" class="text-gray-600 hover:text-teal-600 transition">&larr; العودة للموقع</a>
+        </header>
+
+        <!-- Create Poll Section -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4">إنشاء استطلاع جديد</h2>
+            <form id="create-poll-form">
+                <div class="mb-4">
+                    <label for="poll-title" class="block text-gray-700 font-bold mb-2">عنوان الاستطلاع / السؤال *</label>
+                    <input type="text" id="poll-title" class="w-full px-3 py-2 border rounded-lg" required placeholder="مثال: من تفضل لرئاسة المجلس القروي؟">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">الخيارات / المرشحون *</label>
+                    <div id="poll-options-container" class="space-y-4">
+                        <!-- Option 1 -->
+                        <div class="flex items-center gap-3 p-2 border rounded-lg">
+                            <input type="text" name="poll_option_name" class="flex-grow px-3 py-2 border-l rounded-lg poll-option-name" required placeholder="اسم الخيار ١">
+                            <input type="file" name="poll_option_image" class="text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 poll-option-image" accept="image/*">
+                        </div>
+                        <!-- Option 2 -->
+                        <div class="flex items-center gap-3 p-2 border rounded-lg">
+                            <input type="text" name="poll_option_name" class="flex-grow px-3 py-2 border-l rounded-lg poll-option-name" required placeholder="اسم الخيار ٢">
+                            <input type="file" name="poll_option_image" class="text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 poll-option-image" accept="image/*">
+                        </div>
+                    </div>
+                    <button type="button" id="add-option-btn" class="mt-2 text-sm text-teal-600 hover:underline">+ إضافة خيار آخر</button>
+                </div>
+                <div class="flex items-center mb-4">
+                    <input type="checkbox" id="poll-is-active" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                    <label for="poll-is-active" class="ml-2 block text-sm text-gray-900">تفعيل الاستطلاع (جعله مرئياً للعامة)</label>
+                </div>
+                <button type="submit" id="submit-poll-btn" class="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 flex items-center justify-center">
+                    <span id="submit-btn-text">إنشاء الاستطلاع</span>
+                    <div id="submit-spinner" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden"></div>
+                </button>
+            </form>
+        </section>
+
+        <!-- Existing Polls Section -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4">الاستطلاعات الحالية</h2>
+            <div id="existing-polls-container" class="space-y-6">
+                <!-- Polls will be dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
+        };
+        
+        const ADMIN_PASSWORD = "reeda2025";
+        const CLOUDINARY_CLOUD_NAME = "dmv4i571b";
+        const CLOUDINARY_UPLOAD_PRESET = "iiymo4cr";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // --- DOM Elements ---
+        const passwordModal = document.getElementById('password-modal');
+        const passwordForm = document.getElementById('password-form');
+        const adminContent = document.getElementById('admin-content');
+        const createPollForm = document.getElementById('create-poll-form');
+        const addOptionBtn = document.getElementById('add-option-btn');
+        const optionsContainer = document.getElementById('poll-options-container');
+        const existingPollsContainer = document.getElementById('existing-polls-container');
+        
+        // --- Authentication ---
+        passwordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (document.getElementById('password-input').value === ADMIN_PASSWORD) {
+                passwordModal.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                initAdmin();
+            } else {
+                document.getElementById('error-message').classList.remove('hidden');
+            }
+        });
+
+        async function initAdmin() {
+            try {
+                await signInAnonymously(auth);
+                console.log("Admin authenticated.");
+                listenForPolls();
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                alert("فشل الاتصال بقاعدة البيانات.");
+            }
+        }
+
+        // --- Create Poll Logic ---
+        addOptionBtn.addEventListener('click', () => {
+            const optionWrapper = document.createElement('div');
+            optionWrapper.className = 'flex items-center gap-3 p-2 border rounded-lg';
+            
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.name = 'poll_option_name';
+            nameInput.className = 'flex-grow px-3 py-2 border-l rounded-lg poll-option-name';
+            nameInput.required = true;
+            nameInput.placeholder = `اسم الخيار ${optionsContainer.children.length + 1}`;
+            
+            const imageInput = document.createElement('input');
+            imageInput.type = 'file';
+            imageInput.name = 'poll_option_image';
+            imageInput.className = 'text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 poll-option-image';
+            imageInput.accept = 'image/*';
+            
+            optionWrapper.appendChild(nameInput);
+            optionWrapper.appendChild(imageInput);
+            optionsContainer.appendChild(optionWrapper);
+        });
+
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+            const data = await response.json();
+            return data.secure_url;
+        }
+
+        createPollForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-poll-btn');
+            submitBtn.disabled = true;
+            document.getElementById('submit-btn-text').classList.add('hidden');
+            document.getElementById('submit-spinner').classList.remove('hidden');
+
+            const title = document.getElementById('poll-title').value;
+            const isActive = document.getElementById('poll-is-active').checked;
+            const optionWrappers = document.querySelectorAll('#poll-options-container > div');
+
+            try {
+                const uploadPromises = Array.from(optionWrappers).map(wrapper => {
+                    const imageFile = wrapper.querySelector('.poll-option-image').files[0];
+                    return imageFile ? uploadImage(imageFile) : Promise.resolve('');
+                });
+
+                const imageUrls = await Promise.all(uploadPromises);
+
+                const options = Array.from(optionWrappers).map((wrapper, index) => {
+                    const name = wrapper.querySelector('.poll-option-name').value.trim();
+                    return {
+                        name: name,
+                        imageUrl: imageUrls[index] || '',
+                        votes: 0
+                    };
+                }).filter(opt => opt.name !== '');
+
+                if (options.length < 2) {
+                    throw new Error("يجب إضافة خيارين على الأقل.");
+                }
+
+                await addDoc(collection(db, "polls"), {
+                    title,
+                    isActive,
+                    options,
+                    createdAt: new Date()
+                });
+
+                createPollForm.reset();
+                while (optionsContainer.children.length > 2) {
+                    optionsContainer.removeChild(optionsContainer.lastChild);
+                }
+
+            } catch (error) {
+                console.error("Error creating poll:", error);
+                alert(error.message || "حدث خطأ أثناء إنشاء الاستطلاع.");
+            } finally {
+                submitBtn.disabled = false;
+                document.getElementById('submit-btn-text').classList.remove('hidden');
+                document.getElementById('submit-spinner').classList.add('hidden');
+            }
+        });
+
+        // --- Manage Existing Polls ---
+        function listenForPolls() {
+            const pollsRef = collection(db, "polls");
+            onSnapshot(pollsRef, (snapshot) => {
+                existingPollsContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    existingPollsContainer.innerHTML = `<p class="text-center text-gray-500">لا توجد استطلاعات حالياً.</p>`;
+                } else {
+                    const sortedDocs = snapshot.docs.sort((a, b) => b.data().createdAt.toMillis() - a.data().createdAt.toMillis());
+                    sortedDocs.forEach(doc => {
+                        renderPollCard(doc.id, doc.data());
+                    });
+                }
+            });
+        }
+
+        function renderPollCard(pollId, pollData) {
+            const pollCard = document.createElement('div');
+            pollCard.className = 'bg-white p-6 rounded-lg shadow-sm';
+            
+            const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes, 0);
+            
+            const resultsHtml = pollData.options.map(option => {
+                const percentage = totalVotes > 0 ? ((option.votes / totalVotes) * 100).toFixed(1) : 0;
+                const imageHtml = option.imageUrl 
+                    ? `<img src="${option.imageUrl}" alt="${option.name}" class="w-10 h-10 rounded-full object-cover ml-3 border">`
+                    : `<div class="w-10 h-10 rounded-full bg-gray-200 ml-3"></div>`;
+
+                return `
+                    <div class="mb-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="flex items-center">
+                                ${imageHtml}
+                                <span>${option.name}</span>
+                            </div>
+                            <span class="text-sm font-bold">${option.votes} (${percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-teal-500 h-2.5 rounded-full poll-option-bar" style="width: ${percentage}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const activeStatusClass = pollData.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+            const activeStatusText = pollData.isActive ? 'نشط' : 'غير نشط';
+
+            pollCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-xl font-bold">${pollData.title}</h3>
+                        <p class="text-sm text-gray-500 mb-4">إجمالي الأصوات: ${totalVotes}</p>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full ${activeStatusClass}">${activeStatusText}</span>
+                </div>
+                <div class="space-y-3 mb-4">${resultsHtml}</div>
+                <div class="flex items-center justify-end gap-3 border-t pt-4 mt-4">
+                    <button data-id="${pollId}" data-status="${pollData.isActive}" class="toggle-status-btn text-sm font-bold py-2 px-4 rounded-lg ${pollData.isActive ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white transition">
+                        ${pollData.isActive ? 'إيقاف' : 'تفعيل'}
+                    </button>
+                    <button data-id="${pollId}" class="delete-poll-btn text-sm font-bold py-2 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white transition">حذف</button>
+                </div>
+            `;
+
+            existingPollsContainer.appendChild(pollCard);
+        }
+
+        // --- Event Delegation for Poll Actions ---
+        existingPollsContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            
+            // Toggle Status
+            if (target.classList.contains('toggle-status-btn')) {
+                const pollId = target.dataset.id;
+                const currentStatus = target.dataset.status === 'true';
+                target.textContent = 'جاري...';
+                try {
+                    const pollRef = doc(db, "polls", pollId);
+                    await updateDoc(pollRef, { isActive: !currentStatus });
+                } catch (error) {
+                    console.error("Error toggling status:", error);
+                    alert("حدث خطأ.");
+                }
+            }
+
+            // Delete Poll
+            if (target.classList.contains('delete-poll-btn')) {
+                const pollId = target.dataset.id;
+                if (confirm("هل أنت متأكد من حذف هذا الاستطلاع نهائياً؟ لا يمكن التراجع عن هذا الإجراء.")) {
+                    target.textContent = 'جاري الحذف...';
+                    try {
+                        const pollRef = doc(db, "polls", pollId);
+                        await deleteDoc(pollRef);
+                    } catch (error) {
+                        console.error("Error deleting poll:", error);
+                        alert("حدث خطأ أثناء الحذف.");
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

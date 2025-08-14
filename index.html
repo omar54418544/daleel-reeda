@@ -68,10 +68,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        /* Fade transition for search results */
-        #search-results {
-            transition: opacity 0.5s ease-in-out;
-        }
         /* --- New Loading Spinner --- */
         .spinner {
             width: 56px;
@@ -91,6 +87,29 @@
         #install-banner, #ios-install-banner {
             transition: transform 0.3s ease-in-out;
         }
+        
+        /* --- Featured Card Style --- */
+        .featured-card {
+            border: 2px solid #f59e0b; /* amber-500 */
+            position: relative;
+            background-color: #fffbeb; /* amber-50 */
+        }
+        .featured-badge {
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            background-color: #f59e0b; /* amber-500 */
+            color: white;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem; /* text-xl */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -102,6 +121,7 @@
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
                 <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
                 <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
+                <a href="polls.html" class="text-gray-700 hover:text-teal-600">استطلاعات الرأي</a>
                 <a href="#education" class="text-gray-700 hover:text-teal-600">التعليم</a>
                 <a href="add-service.html" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">أضف نفسك للدليل</a>
             </div>
@@ -114,6 +134,7 @@
         <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
+            <a href="polls.html" class="block py-2 px-4 text-sm hover:bg-teal-50">استطلاعات الرأي</a>
             <a href="#education" class="block py-2 px-4 text-sm hover:bg-teal-50">التعليم</a>
         </div>
     </header>
@@ -179,7 +200,6 @@
                 </div>
                 
                 <div id="loading-indicator" class="text-center py-12">
-                    <!-- New Spinner -->
                     <div class="spinner"></div>
                     <p class="text-gray-500 mt-4">جاري تحميل البيانات...</p>
                 </div>
@@ -188,6 +208,18 @@
 
                 <div id="load-more-container" class="text-center mt-12">
                     <button id="load-more-btn" class="bg-gray-700 text-white font-bold py-3 px-10 rounded-lg hover:bg-gray-800 transition hidden">عرض المزيد</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Polls CTA Section -->
+        <section class="bg-teal-50 py-16">
+            <div class="container mx-auto px-6 text-center">
+                <div class="max-w-2xl mx-auto">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">شارك في استطلاعات الرأي</h2>
+                    <p class="text-gray-600 mb-6">صوتك يهمنا! ساهم في اتخاذ القرارات التي تتعلق بقريتنا من خلال المشاركة في الاستطلاعات والانتخابات المتاحة.</p>
+                    <a href="polls.html" class="bg-teal-600 text-white font-bold py-3 px-8 rounded-full hover:bg-teal-700 shadow-lg transition duration-300 inline-block">الانتقال إلى صفحة التصويت &rarr;</a>
                 </div>
             </div>
         </section>
@@ -312,7 +344,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, getDocs, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- PWA Service Worker Registration ---
@@ -393,7 +425,7 @@
             try {
                 await signInAnonymously(auth);
                 console.log("Authentication successful.");
-                listenForServices();
+                fetchServices(); // Fetch initial batch
             } catch (error) {
                 console.error("Authentication failed:", error);
                 document.getElementById('loading-indicator').textContent = 'فشل الاتصال بقاعدة البيانات.';
@@ -412,30 +444,117 @@
         
         const standardProfessions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
         let allApprovedServices = [];
-        let currentPage = 1;
-        let currentFilteredData = [];
-        let rotatorInterval = null; // To hold the interval timer
+        let rotatorInterval = null;
+        
+        // --- Pagination State ---
+        let lastVisible = null;
+        let isFetching = false;
+        const BATCH_SIZE = 24;
 
-        function listenForServices() {
-            const servicesCollection = collection(db, "services");
-            const q = query(servicesCollection, orderBy("createdAt", "desc")); 
+        // --- Main Data Fetching Function ---
+        async function fetchServices(loadMore = false) {
+            if (isFetching) return;
+            isFetching = true;
+            if (!loadMore) {
+                loadingIndicator.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+            } else {
+                loadMoreBtn.textContent = 'جاري التحميل...';
+            }
 
-            onSnapshot(q, (querySnapshot) => {
-                allApprovedServices = [];
+            try {
+                const servicesCollection = collection(db, "services");
+                let q;
+
+                if (loadMore && lastVisible) {
+                    q = query(servicesCollection, orderBy("createdAt", "desc"), startAfter(lastVisible), limit(BATCH_SIZE));
+                } else {
+                    q = query(servicesCollection, orderBy("createdAt", "desc"), limit(BATCH_SIZE));
+                }
+
+                const querySnapshot = await getDocs(q);
+                const newServices = [];
                 querySnapshot.forEach((doc) => {
-                    allApprovedServices.push({ id: doc.id, ...doc.data() });
+                    newServices.push({ id: doc.id, ...doc.data() });
                 });
-                loadingIndicator.classList.add('hidden');
-                resultsContainer.classList.remove('hidden');
-                handleSearch(); 
-            }, (error) => {
+
+                if (!loadMore) {
+                    allApprovedServices = newServices;
+                } else {
+                    allApprovedServices = [...allApprovedServices, ...newServices];
+                }
+
+                lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+                if (!loadMore) {
+                    loadingIndicator.classList.add('hidden');
+                    resultsContainer.classList.remove('hidden');
+                    resultsContainer.style.transition = 'opacity 0.3s ease-in-out';
+                    startRotator();
+                } else {
+                    renderCards(allApprovedServices);
+                }
+
+                if (querySnapshot.empty || querySnapshot.size < BATCH_SIZE) {
+                    loadMoreBtn.classList.add('hidden');
+                } else {
+                    loadMoreBtn.classList.remove('hidden');
+                    loadMoreBtn.textContent = 'عرض المزيد';
+                }
+
+            } catch (error) {
                 console.error("Error fetching services: ", error);
-                loadingIndicator.textContent = 'حدث خطأ في جلب البيانات.';
-            });
+                loadingIndicator.innerHTML = '<p class="text-red-500">حدث خطأ في جلب البيانات.</p>';
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startRotator() {
+            clearInterval(rotatorInterval);
+            const ITEMS_TO_ROTATE = 6;
+            
+            const rotatorSource = allApprovedServices.length > ITEMS_TO_ROTATE 
+                ? allApprovedServices 
+                : [];
+
+            if (rotatorSource.length === 0) return;
+
+            const showRandomSet = () => {
+                const shuffled = shuffleArray([...rotatorSource]);
+                const dataToShow = shuffled.slice(0, ITEMS_TO_ROTATE);
+                
+                resultsContainer.style.opacity = 0;
+                setTimeout(() => {
+                    renderCards(dataToShow);
+                    resultsContainer.style.opacity = 1;
+                }, 300);
+            };
+
+            showRandomSet();
+            rotatorInterval = setInterval(showRandomSet, 5000);
         }
 
         function renderCards(data) {
-            resultsContainer.innerHTML = ''; 
+            const isSearching = nameSearchInput.value.trim() !== '' || categoryFilter.value !== 'all';
+            const container = resultsContainer;
+            if (!isSearching && !rotatorInterval) {
+                 container.innerHTML = ''; // Clear only if we redraw the whole list
+            } else {
+                 container.innerHTML = '';
+            }
+
+            // Sort by featured status within the displayed data
+            data.sort((a, b) => (b.isFeatured || false) - (a.isFeatured || false));
+            
             data.forEach((person) => {
                 const uniqueId = `phone-${person.id}`;
                 const whatsappLinkNumber = `2${person.whatsappPhone}`;
@@ -447,9 +566,19 @@
                     : `<div class="w-20 h-20 md:w-24 md:h-24 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center mb-2 md:mb-4 mx-auto border-2 border-gray-200">
                            <svg class="w-10 h-10 md:w-12 md:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                        </div>`;
+                
+                const isFeatured = person.isFeatured === true;
+                const cardClasses = isFeatured
+                    ? 'bg-white rounded-lg shadow-lg p-3 md:p-6 flex flex-col text-center transition transform hover:-translate-y-1 hover:shadow-xl featured-card'
+                    : 'bg-white rounded-lg shadow-lg p-3 md:p-6 flex flex-col text-center transition transform hover:-translate-y-1 hover:shadow-xl';
 
-                const card = `
-                    <div class="bg-white rounded-lg shadow-lg p-3 md:p-6 flex flex-col text-center transition transform hover:-translate-y-1 hover:shadow-xl">
+                const featuredBadge = isFeatured
+                    ? `<div class="featured-badge" title="خدمة مميزة">⭐</div>`
+                    : '';
+
+                const cardHTML = `
+                    <div class="${cardClasses}">
+                        ${featuredBadge}
                         ${imageOrIcon}
                         <h3 class="text-base md:text-xl font-bold mb-1">${person.name}</h3>
                         <p class="text-sm md:text-base text-gray-500 mb-2 md:mb-4">${person.profession}</p>
@@ -469,81 +598,45 @@
                         </div>
                     </div>
                 `;
-                resultsContainer.innerHTML += card;
+                container.innerHTML += cardHTML;
             });
-        }
-
-        function updateResults() {
-            const ITEMS_PER_PAGE = 6;
-            const dataToShow = currentFilteredData.slice(0, currentPage * ITEMS_PER_PAGE);
-            renderCards(dataToShow);
-            loadMoreBtn.classList.toggle('hidden', dataToShow.length >= currentFilteredData.length);
-            if (resultsContainer.innerHTML === '') {
-                 resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لبحثك.</p>`;
-            }
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function startRotator() {
-            clearInterval(rotatorInterval); // Clear any existing timer
-            const ITEMS_TO_ROTATE = 6;
-            if (allApprovedServices.length <= ITEMS_TO_ROTATE) return; // No need to rotate
-
-            rotatorInterval = setInterval(() => {
-                const shuffled = shuffleArray([...allApprovedServices]);
-                currentFilteredData = shuffled.slice(0, ITEMS_TO_ROTATE);
-                
-                resultsContainer.style.opacity = 0;
-                setTimeout(() => {
-                    updateResults();
-                    resultsContainer.style.opacity = 1;
-                }, 500);
-
-            }, 5000); 
         }
 
         function handleSearch() {
             const selectedProfession = categoryFilter.value;
             const searchTerm = nameSearchInput.value.trim().toLowerCase();
-            currentPage = 1;
-            clearInterval(rotatorInterval); 
-
             const isSearching = searchTerm !== '' || selectedProfession !== 'all';
 
+            clearInterval(rotatorInterval);
+            rotatorInterval = null;
+            loadMoreBtn.classList.add('hidden'); // Hide load more during search by default
+
             if (isSearching) {
-                currentFilteredData = allApprovedServices.filter(person => {
-                    let categoryMatch;
-                    if (selectedProfession === 'all') {
-                        categoryMatch = true;
-                    } else if (selectedProfession === 'other_filter') {
-                        categoryMatch = !standardProfessions.includes(person.profession);
-                    } else {
-                        categoryMatch = person.profession === selectedProfession;
-                    }
-                    
+                // Filter only the already loaded data
+                const filteredData = allApprovedServices.filter(person => {
+                    const categoryMatch = selectedProfession === 'all' || 
+                                          (selectedProfession === 'other_filter' ? !standardProfessions.includes(person.profession) : person.profession === selectedProfession);
                     const nameMatch = !searchTerm || (person.name && person.name.toLowerCase().includes(searchTerm));
                     return categoryMatch && nameMatch;
                 });
+                renderCards(filteredData);
+                if (filteredData.length === 0) {
+                    resultsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لبحثك في البيانات المحملة. حاول "عرض المزيد" ثم ابحث مرة أخرى.</p>`;
+                }
             } else {
-                const ITEMS_TO_SHOW = 6;
-                const shuffled = shuffleArray([...allApprovedServices]);
-                currentFilteredData = shuffled.slice(0, ITEMS_TO_SHOW);
+                // If search is cleared, restart the rotator
                 startRotator();
             }
-            
-            updateResults();
+             // Show load more button if not searching and there might be more data
+            if (!isSearching && lastVisible) {
+                loadMoreBtn.classList.remove('hidden');
+            }
         }
-
+        
         loadMoreBtn.addEventListener('click', () => {
-            currentPage++;
-            updateResults();
+             clearInterval(rotatorInterval);
+             rotatorInterval = null;
+             fetchServices(true);
         });
 
         categoryFilter.addEventListener('change', handleSearch);
