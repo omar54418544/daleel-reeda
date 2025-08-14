@@ -108,29 +108,33 @@
         #search-results {
             transition: opacity 0.5s ease-in-out;
         }
-        main {
-            padding-top: 56px; 
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <!-- Header & Navigation Bar -->
-    <header class="bg-white/80 backdrop-blur-sm shadow-md fixed top-0 w-full z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-xl md:text-2xl font-bold text-teal-700">خدمات قرية ريدة اونلاين</a>
-            <div class="hidden md:flex items-center space-x-6 space-x-reverse">
-                <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
-                <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
-                <a href="#community-services" class="text-gray-700 hover:text-teal-600">خدمات المجتمع</a>
-                <a href="polls.html" class="text-gray-700 hover:text-teal-600">استطلاعات الرأي</a>
+    <!-- ## MODIFIED: Header is now fixed and combines both bars -->
+    <header class="fixed top-0 w-full z-50 shadow-lg">
+        <div id="add-service-banner" class="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+            <div class="container mx-auto px-4 py-2 flex items-center justify-center text-center">
+                <p class="font-bold text-sm md:text-base">هل تقدم خدمة أو لديك نشاط تجاري؟</p>
+                <a href="add-service.html" class="mr-4 bg-white text-orange-600 font-bold py-1 px-4 rounded-full text-sm hover:bg-gray-200 transition-colors duration-300">أضف نفسك للدليل الآن</a>
             </div>
-            <div class="md:hidden">
-                <button id="menu-button" class="text-gray-600 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </button>
-            </div>
-        </nav>
+        </div>
+        <div class="bg-white/80 backdrop-blur-sm">
+            <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="md:hidden">
+                    <button id="menu-button" class="text-gray-600 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+                <div class="hidden md:flex items-center space-x-6 space-x-reverse">
+                    <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
+                    <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
+                    <a href="#community-services" class="text-gray-700 hover:text-teal-600">خدمات المجتمع</a>
+                    <a href="polls.html" class="text-gray-700 hover:text-teal-600">استطلاعات الرأي</a>
+                </div>
+            </nav>
+        </div>
         <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
@@ -139,15 +143,8 @@
         </div>
     </header>
 
-    <!-- Sticky "Add Yourself" Banner -->
-    <section id="add-service-banner" class="fixed top-[68px] w-full z-40 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-2 flex items-center justify-center text-center">
-            <p class="font-bold text-sm md:text-base">هل تقدم خدمة أو لديك نشاط تجاري؟</p>
-            <a href="add-service.html" class="mr-4 bg-white text-orange-600 font-bold py-1 px-4 rounded-full text-sm hover:bg-gray-200 transition-colors duration-300">أضف نفسك للدليل الآن</a>
-        </div>
-    </section>
-
-    <main>
+    <!-- ## MODIFIED: Added padding-top to account for the new fixed header height -->
+    <main class="pt-28">
         <!-- Hero Section -->
         <section id="hero" class="relative text-white" style="height: 50vh;">
             <div class="animated-bg">
@@ -159,9 +156,8 @@
             </div>
             <div class="absolute inset-0 bg-black opacity-20 z-10"></div>
             <div class="container mx-auto px-6 h-full flex flex-col justify-center items-center text-center relative z-20">
-                <h1 class="text-4xl md:text-6xl font-bold mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">أهلاً بكم في خدمات قرية ريدة اونلاين</h1>
-                <p class="text-lg md:text-xl mb-6 max-w-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية.</p>
-                <!-- ## MODIFIED: Button group for actions -->
+                <h1 class="text-4xl md:text-6xl font-bold mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">خدمات قرية ريدة اونلاين</h1>
+                <p class="text-lg md:text-xl mb-6 max-w-2xl" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">أهلاً بكم في المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية.</p>
                 <div class="flex flex-col sm:flex-row items-center gap-4">
                     <a href="#search-section" class="bg-white text-teal-700 font-bold py-3 px-8 rounded-full hover:bg-gray-200 shadow-lg transition duration-300">استكشف خدمات القرية</a>
                     <a href="https://daleel-reeda.vercel.app/reedah.apk" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full hover:bg-green-600 shadow-lg transition duration-300 flex items-center gap-2">
@@ -318,8 +314,8 @@
         </div>
     </footer>
 
-    <!-- APK Download Banner -->
-    <div id="apk-download-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-3 flex items-center justify-between shadow-lg z-40 md:hidden">
+    <!-- Temporary APK Download Banner -->
+    <div id="apk-download-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-3 flex items-center justify-between shadow-lg z-40 md:hidden transform transition-transform duration-500 translate-y-full">
         <div class="flex items-center">
             <img src="icons/icon-192x192.png" alt="App Icon" class="w-10 h-10 rounded-lg ml-3">
             <div>
@@ -333,19 +329,6 @@
         </a>
     </div>
 
-    <!-- In-App and iOS Banners -->
-    <div id="in-app-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold mb-4">فتح في المتصفح</h2>
-            <p class="text-gray-600 mb-4">لأفضل تجربة، يرجى فتح الموقع في متصفحك الأساسي.</p>
-            <img src="images/open-in-browser.gif" alt="How to open in browser" class="w-full rounded-lg mb-6 border">
-            <button id="close-in-app-modal-btn" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition">فهمت</button>
-        </div>
-    </div>
-    <div id="ios-install-banner" class="fixed bottom-0 left-0 right-0 bg-blue-500 text-white p-4 text-center transform translate-y-full shadow-lg z-50">
-        <p>لتثبيت التطبيق، اضغط على زر المشاركة <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 8m4-4v12"></path></svg> ثم "إضافة إلى الشاشة الرئيسية".</p>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, getDocs, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -356,26 +339,25 @@
             const mobileMenu = document.getElementById('mobile-menu');
             menuButton.addEventListener('click', () => mobileMenu.classList.toggle('menu-hidden'));
 
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('ServiceWorker registration failed: ', err));
-                });
+            const downloadBanner = document.getElementById('apk-download-banner');
+            const body = document.body;
+
+            if (!localStorage.getItem('apkBannerShown')) {
+                setTimeout(() => {
+                    downloadBanner.classList.remove('translate-y-full');
+                    body.style.paddingBottom = '80px';
+                }, 1000); 
+
+                setTimeout(() => {
+                    downloadBanner.classList.add('translate-y-full');
+                    body.style.paddingBottom = '0';
+                }, 6000); 
+
+                localStorage.setItem('apkBannerShown', 'true');
+            } else {
+                downloadBanner.classList.add('hidden');
+                body.style.paddingBottom = '0';
             }
-
-            const inAppModal = document.getElementById('in-app-modal');
-            const closeInAppModalBtn = document.getElementById('close-in-app-modal-btn');
-            const iosInstallBanner = document.getElementById('ios-install-banner');
-
-            function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; }
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-            const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf('Instagram') > -1) || (ua.indexOf('Messenger') > -1);
-
-            if (isInApp) { inAppModal.classList.remove('hidden'); }
-            else if (isIOS() && !window.navigator.standalone) {
-                iosInstallBanner.style.transform = 'translateY(0)';
-            }
-
-            closeInAppModalBtn.addEventListener('click', () => inAppModal.classList.add('hidden'));
         }
         setupPWA();
 
