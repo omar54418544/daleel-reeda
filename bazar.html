@@ -135,7 +135,8 @@
 
             card.innerHTML = `
                 ${pendingOverlay}
-                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-56 object-cover">
+                <!-- ## MODIFIED: Changed object-cover to object-contain and added a background -->
+                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-56 object-contain bg-gray-100">
                 <div class="p-4 flex-grow flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
                     <p class="text-2xl font-bold text-teal-600 mb-3">${item.price} جنيه</p>

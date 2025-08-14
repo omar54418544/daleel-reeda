@@ -110,7 +110,6 @@
             onSnapshot(qApproved, (approvedSnapshot) => {
                 const approvedItems = approvedSnapshot.docs.map(doc => ({ id: doc.id, status: 'approved', ...doc.data() }));
                 
-                // Fetch pending items to merge
                 getDocs(qPending).then(pendingSnapshot => {
                     const pendingItems = pendingSnapshot.docs.map(doc => ({ id: doc.id, status: 'pending', ...doc.data() }));
                     allItems = [...pendingItems, ...approvedItems];
@@ -167,7 +166,8 @@
             };
             const cat = categoryColors[event.category] || { bg: 'bg-gray-100', text: 'text-gray-800', name: 'عام' };
             const eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
-            const imageHtml = event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-cover">` : '';
+            // ## MODIFIED: Changed object-cover to object-contain and added a background
+            const imageHtml = event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-contain bg-gray-100">` : '';
             const pendingOverlay = event.status === 'pending' 
                 ? `<div class="pending-overlay"><i class="fas fa-hourglass-half fa-2x"></i><span class="font-bold">قيد المراجعة</span></div>` 
                 : '';
