@@ -88,7 +88,7 @@
             }
         }
         /* --- Install Prompt Banner --- */
-        #install-banner {
+        #install-banner, #in-app-banner {
             transition: transform 0.3s ease-in-out;
         }
     </style>
@@ -295,6 +295,11 @@
         <button id="install-btn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition">تثبيت</button>
     </div>
 
+    <!-- In-App Browser Banner -->
+    <div id="in-app-banner" class="fixed bottom-0 left-0 right-0 bg-yellow-400 text-yellow-900 p-4 text-center transform translate-y-full shadow-lg z-50">
+        <p>لأفضل تجربة وتثبيت التطبيق، يرجى فتح الموقع في متصفحك الأساسي.</p>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -311,15 +316,32 @@
             });
         }
 
-        // --- Install Prompt Logic ---
+        // --- Install Prompt & In-App Browser Logic ---
         let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
         const installBtn = document.getElementById('install-btn');
+        const inAppBanner = document.getElementById('in-app-banner');
+
+        // In-App browser detection
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+        const isInstagram = (ua.indexOf('Instagram') > -1);
+        const isMessenger = (ua.indexOf('Messenger') > -1);
+        const isInApp = isFacebook || isInstagram || isMessenger;
+
+        if (isInApp) {
+            inAppBanner.style.transform = 'translateY(0)';
+        }
 
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
+            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            installBanner.style.transform = 'translateY(0)';
+            // Show the install prompt banner only if not in an in-app browser
+            if (!isInApp) {
+                installBanner.style.transform = 'translateY(0)';
+            }
         });
 
         installBtn.addEventListener('click', async () => {
