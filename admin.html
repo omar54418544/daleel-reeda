@@ -194,6 +194,49 @@
             loaders[tabName](container);
         }
 
+        // ## NEW: Image resizing function
+        async function resizeImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let { width, height } = img;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
+            });
+        }
+
         const approveItem = async (pendingColl, approvedColl, itemId) => {
             const itemDoc = await getDoc(doc(db, pendingColl, itemId));
             if (itemDoc.exists()) {
@@ -295,8 +338,10 @@
             const imageFile = formData.get('imageFile');
             if (imageFile && imageFile.size > 0) {
                 try {
+                    // ## MODIFIED: Resize image before uploading
+                    const resizedBlob = await resizeImage(imageFile);
                     const imageFormData = new FormData();
-                    imageFormData.append('file', imageFile);
+                    imageFormData.append('file', resizedBlob, imageFile.name);
                     imageFormData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                     
                     const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: imageFormData });

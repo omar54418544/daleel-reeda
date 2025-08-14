@@ -188,6 +188,50 @@
 
         let uploadedFile = null;
 
+        // ## NEW: Image resizing function
+        async function resizeImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let { width, height } = img;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
+            });
+        }
+
+
         // --- Image Upload Logic ---
         imageUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -244,7 +288,7 @@
                 return;
             }
 
-            // --- Check for existing phone number ---
+            // Check for existing phone number
             try {
                 const servicesRef = collection(db, "services");
                 const qServices = query(servicesRef, where("phone", "==", phoneValue));
@@ -271,8 +315,6 @@
                 setLoading(false);
                 return;
             }
-            // --- End check ---
-
 
             let professionValue = professionSelect.value;
             if (professionValue === 'other_input') {
@@ -286,10 +328,13 @@
 
             let imageUrl = '';
             if (uploadedFile) {
-                const formData = new FormData();
-                formData.append('file', uploadedFile);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 try {
+                    // ## MODIFIED: Resize image before uploading
+                    const resizedBlob = await resizeImage(uploadedFile);
+                    const formData = new FormData();
+                    formData.append('file', resizedBlob, uploadedFile.name);
+                    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
                     const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                     const data = await response.json();
                     if (data.secure_url) {
@@ -329,8 +374,9 @@
             } catch (error) {
                 console.error("Error writing document: ", error);
                 showMessage("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.", 'error');
+            } finally {
                 setLoading(false);
-            } 
+            }
         });
 
         function setLoading(isLoading) {
