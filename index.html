@@ -119,12 +119,12 @@
     <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="text-xl md:text-2xl font-bold text-teal-700">خدمات قرية ريدة اونلاين</a>
+            <!-- ## MODIFIED: "Add yourself" button removed from desktop nav -->
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
                 <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
                 <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
                 <a href="#community-services" class="text-gray-700 hover:text-teal-600">خدمات المجتمع</a>
                 <a href="polls.html" class="text-gray-700 hover:text-teal-600">استطلاعات الرأي</a>
-                <a href="add-service.html" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">أضف نفسك للدليل</a>
             </div>
             <div class="md:hidden">
                 <button id="menu-button" class="text-gray-600 focus:outline-none">
@@ -132,14 +132,12 @@
                 </button>
             </div>
         </nav>
+        <!-- ## MODIFIED: "Add yourself" button removed from mobile menu -->
         <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
             <a href="#community-services" class="block py-2 px-4 text-sm hover:bg-teal-50">خدمات المجتمع</a>
             <a href="polls.html" class="block py-2 px-4 text-sm hover:bg-teal-50">استطلاعات الرأي</a>
-            <div class="p-2">
-                <a href="add-service.html" class="block w-full text-center py-2 px-4 text-sm bg-orange-500 text-white font-bold rounded-lg">أضف نفسك للدليل</a>
-            </div>
         </div>
     </header>
 
@@ -307,7 +305,12 @@
         </div>
     </footer>
 
-    <!-- ## MODIFIED: Install Banner updated with new text and icon -->
+    <!-- ## NEW: Floating Action Button -->
+    <a href="add-service.html" class="fixed bottom-6 left-6 z-40 bg-orange-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300" title="أضف نفسك للدليل">
+        <i class="fas fa-plus fa-2x"></i>
+    </a>
+
+    <!-- Install Prompt Banners & Modals -->
     <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex items-center justify-between transform translate-y-full shadow-lg z-50">
         <div class="flex items-center">
             <img src="icons/icon-192x192.png" alt="App Icon" class="w-12 h-12 rounded-lg ml-4">
@@ -339,7 +342,6 @@
         import { getFirestore, collection, query, getDocs, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // ## MODIFIED: PWA logic moved into its own function for clarity
         function setupPWA() {
             const menuButton = document.getElementById('menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
