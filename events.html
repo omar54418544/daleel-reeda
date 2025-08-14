@@ -6,9 +6,23 @@
     <title>المناسبات والإعلانات - خدمات قرية ريدة اونلاين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .hidden { display: none; }
+        .pending-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: #555;
+            backdrop-filter: blur(2px);
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -31,7 +45,7 @@
             </div>
 
             <div class="mb-8 border-b border-gray-200">
-                <nav class="flex justify-center -mb-px space-x-6 space-x-reverse" aria-label="Tabs">
+                <nav class="flex justify-center -mb-px space-x-2 sm:space-x-6 space-x-reverse overflow-x-auto" aria-label="Tabs">
                     <button data-category="all" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-teal-600 border-teal-600">الكل</button>
                     <button data-category="social" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent">مناسبات</button>
                     <button data-category="announcement" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent">إعلانات هامة</button>
@@ -54,10 +68,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // ... (Firebase config)
         const firebaseConfig = {
             apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
             authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
@@ -71,58 +84,81 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // ... (rest of the script is the same as before, but with renderEventCard updated)
         const loadingIndicator = document.getElementById('loading-indicator');
         const eventsContainer = document.getElementById('events-container');
         const noEventsMessage = document.getElementById('no-events-message');
         const tabs = document.querySelectorAll('.tab-btn');
-        let allEvents = [];
+        let allItems = [];
 
         async function init() {
             try {
                 await signInAnonymously(auth);
-                listenForEvents();
+                listenForAllItems();
             } catch (error) {
                 console.error("Authentication failed:", error);
+                loadingIndicator.textContent = 'فشل تحميل البيانات.';
             }
         }
 
-        function listenForEvents() {
-            const eventsRef = collection(db, "events");
-            const q = query(eventsRef, orderBy("createdAt", "desc"));
+        function listenForAllItems() {
+            const approvedRef = collection(db, "events");
+            const pendingRef = collection(db, "pending_events");
 
-            onSnapshot(q, (snapshot) => {
-                loadingIndicator.classList.add('hidden');
-                allEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const activeTab = document.querySelector('.tab-btn.text-teal-600');
-                filterEvents(activeTab ? activeTab.dataset.category : 'all');
+            const qApproved = query(approvedRef, orderBy("createdAt", "desc"));
+            const qPending = query(pendingRef, orderBy("createdAt", "desc"));
+
+            onSnapshot(qApproved, (approvedSnapshot) => {
+                const approvedItems = approvedSnapshot.docs.map(doc => ({ id: doc.id, status: 'approved', ...doc.data() }));
+                
+                // Fetch pending items to merge
+                getDocs(qPending).then(pendingSnapshot => {
+                    const pendingItems = pendingSnapshot.docs.map(doc => ({ id: doc.id, status: 'pending', ...doc.data() }));
+                    allItems = [...pendingItems, ...approvedItems];
+                    updateDisplay();
+                });
             });
+
+             onSnapshot(qPending, (pendingSnapshot) => {
+                const pendingItems = pendingSnapshot.docs.map(doc => ({ id: doc.id, status: 'pending', ...doc.data() }));
+                 getDocs(qApproved).then(approvedSnapshot => {
+                    const approvedItems = approvedSnapshot.docs.map(doc => ({ id: doc.id, status: 'approved', ...doc.data() }));
+                    allItems = [...pendingItems, ...approvedItems];
+                    updateDisplay();
+                });
+            });
+        }
+        
+        function updateDisplay() {
+            loadingIndicator.classList.add('hidden');
+            const activeTab = document.querySelector('.tab-btn.text-teal-600');
+            filterEvents(activeTab ? activeTab.dataset.category : 'all');
         }
 
         function filterEvents(category) {
             eventsContainer.innerHTML = '';
-            const filtered = category === 'all' ? allEvents : allEvents.filter(event => event.category === category);
+            const filtered = category === 'all' ? allItems : allItems.filter(item => item.category === category);
 
             if (filtered.length === 0) {
                 noEventsMessage.classList.remove('hidden');
             } else {
                 noEventsMessage.classList.add('hidden');
-                filtered.forEach(event => renderEventCard(event));
+                filtered.forEach(item => renderEventCard(item));
             }
             
             tabs.forEach(tab => {
-                tab.classList.toggle('text-teal-600', tab.dataset.category === category);
-                tab.classList.toggle('border-teal-600', tab.dataset.category === category);
-                tab.classList.toggle('text-gray-500', tab.dataset.category !== category);
-                tab.classList.toggle('hover:text-gray-700', tab.dataset.category !== category);
-                tab.classList.toggle('hover:border-gray-300', tab.dataset.category !== category);
-                tab.classList.toggle('border-transparent', tab.dataset.category !== category);
+                const isSelected = tab.dataset.category === category;
+                tab.classList.toggle('text-teal-600', isSelected);
+                tab.classList.toggle('border-teal-600', isSelected);
+                tab.classList.toggle('text-gray-500', !isSelected);
+                tab.classList.toggle('hover:text-gray-700', !isSelected);
+                tab.classList.toggle('hover:border-gray-300', !isSelected);
+                tab.classList.toggle('border-transparent', !isSelected);
             });
         }
 
         function renderEventCard(event) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-md flex flex-col overflow-hidden';
+            card.className = 'bg-white rounded-lg shadow-md flex flex-col overflow-hidden relative';
 
             const categoryColors = {
                 social: { bg: 'bg-pink-100', text: 'text-pink-800', name: 'مناسبة اجتماعية' },
@@ -132,8 +168,12 @@
             const cat = categoryColors[event.category] || { bg: 'bg-gray-100', text: 'text-gray-800', name: 'عام' };
             const eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
             const imageHtml = event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-cover">` : '';
+            const pendingOverlay = event.status === 'pending' 
+                ? `<div class="pending-overlay"><i class="fas fa-hourglass-half fa-2x"></i><span class="font-bold">قيد المراجعة</span></div>` 
+                : '';
 
             card.innerHTML = `
+                ${pendingOverlay}
                 ${imageHtml}
                 <div class="p-6 flex-grow flex flex-col">
                     <div class="flex-grow">

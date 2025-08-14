@@ -112,8 +112,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, getDoc, addDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
             authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
@@ -130,15 +129,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
 
-        // --- Global DOM Elements ---
-        const loginModal = document.getElementById('login-modal');
-        const adminContent = document.getElementById('admin-content');
-        const logoutBtn = document.getElementById('logout-btn');
-        const editItemForm = document.getElementById('edit-item-form');
-
-        // --- Global Functions ---
         window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
         window.openImageModal = (imageUrl) => {
             if (!imageUrl || imageUrl.includes('placehold.co')) return;
@@ -146,8 +137,9 @@
             document.getElementById('image-viewer-modal').classList.remove('hidden');
         };
 
-        // --- Authentication ---
         onAuthStateChanged(auth, user => {
+            const loginModal = document.getElementById('login-modal');
+            const adminContent = document.getElementById('admin-content');
             if (user) {
                 loginModal.classList.add('hidden');
                 adminContent.classList.remove('hidden');
@@ -171,9 +163,8 @@
                 });
         });
 
-        logoutBtn.addEventListener('click', () => signOut(auth));
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
-        // --- Admin Panel ---
         function initAdminPanel() {
             setupTabs();
             loadTabContent('services');
@@ -203,7 +194,6 @@
             loaders[tabName](container);
         }
 
-        // --- Generic Data Handlers ---
         const approveItem = async (pendingColl, approvedColl, itemId) => {
             const itemDoc = await getDoc(doc(db, pendingColl, itemId));
             if (itemDoc.exists()) {
@@ -246,7 +236,7 @@
                 events: [
                     { id: 'imageUrl', label: 'الصورة', value: data.imageUrl, type: 'image' },
                     { id: 'title', label: 'العنوان', value: data.title },
-                    { id: 'category', label: 'الفئة', value: data.category },
+                    { id: 'category', label: 'الفئة', value: data.category, type: 'select', options: ['social', 'announcement', 'lostfound'] },
                     { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' },
                     { id: 'contactInfo', label: 'معلومات التواصل', value: data.contactInfo }
                 ],
@@ -262,29 +252,13 @@
             const typeKey = collectionName.replace('pending_', '');
             fieldsContainer.innerHTML = fieldDefinitions[typeKey].map(f => {
                 if (f.type === 'image') {
-                    return `
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>
-                            <div class="flex items-center gap-4">
-                                <img id="edit-image-preview" src="${f.value || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=..'}" class="w-24 h-24 rounded-lg object-cover bg-gray-200">
-                                <div>
-                                    <input type="file" id="edit-image-upload" name="imageFile" class="hidden" accept="image/*">
-                                    <button type="button" onclick="document.getElementById('edit-image-upload').click()" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">تغيير الصورة</button>
-                                    <p class="text-xs text-gray-500 mt-1">اترك الحقل فارغاً لعدم تغيير الصورة.</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    return `<div><label class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label><div class="flex items-center gap-4"><img id="edit-image-preview" src="${f.value || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=..'}" class="w-24 h-24 rounded-lg object-cover bg-gray-200"><div><input type="file" id="edit-image-upload" name="imageFile" class="hidden" accept="image/*"><button type="button" onclick="document.getElementById('edit-image-upload').click()" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">تغيير الصورة</button><p class="text-xs text-gray-500 mt-1">اترك الحقل فارغاً لعدم تغيير الصورة.</p></div></div></div>`;
                 }
-                return `
-                    <div>
-                        <label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>
-                        ${f.type === 'textarea'
-                            ? `<textarea id="edit-${f.id}" name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg">${f.value || ''}</textarea>`
-                            : `<input type="${f.type || 'text'}" id="edit-${f.id}" name="${f.id}" value="${f.value || ''}" class="w-full px-3 py-2 border rounded-lg">`
-                        }
-                    </div>
-                `;
+                if (f.type === 'select') {
+                    const optionLabels = { social: 'مناسبة اجتماعية', announcement: 'إعلان هام', lostfound: 'مفقودات' };
+                    return `<div><label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label><select id="edit-${f.id}" name="${f.id}" class="w-full px-3 py-2 border bg-white rounded-lg">${f.options.map(o => `<option value="${o}" ${o === f.value ? 'selected' : ''}>${optionLabels[o] || o}</option>`).join('')}</select></div>`;
+                }
+                return `<div><label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>${f.type === 'textarea' ? `<textarea id="edit-${f.id}" name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg">${f.value || ''}</textarea>` : `<input type="${f.type || 'text'}" id="edit-${f.id}" name="${f.id}" value="${f.value || ''}" class="w-full px-3 py-2 border rounded-lg">`}</div>`;
             }).join('');
 
             document.getElementById('edit-image-upload').addEventListener('change', (e) => {
@@ -296,12 +270,12 @@
                 }
             });
 
-            editItemForm.dataset.collection = collectionName;
-            editItemForm.dataset.id = itemId;
+            document.getElementById('edit-item-form').dataset.collection = collectionName;
+            document.getElementById('edit-item-form').dataset.id = itemId;
             document.getElementById('edit-item-modal').classList.remove('hidden');
         };
 
-        editItemForm.addEventListener('submit', async (e) => {
+        document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const saveBtn = document.getElementById('save-changes-btn');
             const saveBtnText = document.getElementById('save-btn-text');
@@ -355,21 +329,15 @@
             }
         });
 
-        // --- Management Sections ---
-        function createManagementUI(container, titlePending, titleApproved, pendingColl, approvedColl, cardCreator) {
-            container.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4">${titlePending} (<span id="pending-count">0</span>)</h2>
-                <div id="pending-container" class="space-y-4 mb-12"></div>
-                <h2 class="text-2xl font-bold mb-4">${titleApproved} (<span id="approved-count">0</span>)</h2>
-                <div id="approved-container" class="space-y-4"></div>
-            `;
-            listenForCollection(pendingColl, 'pending-container', 'pending-count', cardCreator);
-            listenForCollection(approvedColl, 'approved-container', 'approved-count', cardCreator);
+        function createManagementUI(container, tabName, titlePending, titleApproved, pendingColl, approvedColl, cardCreator) {
+            container.innerHTML = `<h2 class="text-2xl font-bold mb-4">${titlePending} (<span id="${tabName}-pending-count">0</span>)</h2><div id="${tabName}-pending-container" class="space-y-4 mb-12"></div><h2 class="text-2xl font-bold mb-4">${titleApproved} (<span id="${tabName}-approved-count">0</span>)</h2><div id="${tabName}-approved-container" class="space-y-4"></div>`;
+            listenForCollection(pendingColl, `${tabName}-pending-container`, `${tabName}-pending-count`, cardCreator);
+            listenForCollection(approvedColl, `${tabName}-approved-container`, `${tabName}-approved-count`, cardCreator);
         }
 
-        const loadServicesManagement = (c) => createManagementUI(c, 'طلبات إضافة للدليل', 'الدليل العام', 'pending_services', 'services', createServiceCard);
-        const loadEventsManagement = (c) => createManagementUI(c, 'طلبات نشر إعلانات', 'الإعلانات المنشورة', 'pending_events', 'events', createEventCard);
-        const loadBazarManagement = (c) => createManagementUI(c, 'إعلانات سوق قيد المراجعة', 'إعلانات السوق المنشورة', 'pending_bazar_items', 'bazar_items', createBazarCard);
+        const loadServicesManagement = (c) => createManagementUI(c, 'services', 'طلبات إضافة للدليل', 'الدليل العام', 'pending_services', 'services', createServiceCard);
+        const loadEventsManagement = (c) => createManagementUI(c, 'events', 'طلبات نشر إعلانات', 'الإعلانات المنشورة', 'pending_events', 'events', createEventCard);
+        const loadBazarManagement = (c) => createManagementUI(c, 'bazar', 'إعلانات سوق قيد المراجعة', 'إعلانات السوق المنشورة', 'pending_bazar_items', 'bazar_items', createBazarCard);
 
         function listenForCollection(collectionName, containerId, countId, cardCreator) {
             onSnapshot(collection(db, collectionName), (snapshot) => {
@@ -389,19 +357,10 @@
             });
         }
 
-        // --- Card Creation Functions ---
         function createCard(data, contentHtml, actions) {
             const div = document.createElement('div');
             div.className = 'bg-white p-4 rounded-lg shadow-md flex items-center justify-between flex-wrap gap-4';
-            div.innerHTML = `
-                <div class="flex items-center gap-4 flex-grow min-w-[200px]">
-                    <button data-action="view-image" data-url="${data.imageUrl || ''}" class="focus:outline-none flex-shrink-0">
-                        <img src="${data.imageUrl || 'https://placehold.co/64x64/e2e8f0/e2e8f0?text=..'}" alt="صورة مصغرة" class="w-16 h-16 rounded-lg object-cover bg-gray-200 hover:opacity-80 transition-opacity">
-                    </button>
-                    <div class="flex-grow">${contentHtml}</div>
-                </div>
-                <div class="flex gap-2 flex-shrink-0">${actions.join('')}</div>
-            `;
+            div.innerHTML = `<div class="flex items-center gap-4 flex-grow min-w-[200px]"><button data-action="view-image" data-url="${data.imageUrl || ''}" class="focus:outline-none flex-shrink-0"><img src="${data.imageUrl || 'https://placehold.co/64x64/e2e8f0/e2e8f0?text=..'}" alt="صورة مصغرة" class="w-16 h-16 rounded-lg object-cover bg-gray-200 hover:opacity-80 transition-opacity"></button><div class="flex-grow">${contentHtml}</div></div><div class="flex gap-2 flex-shrink-0">${actions.join('')}</div>`;
             return div;
         }
 
@@ -439,8 +398,7 @@
             return createCard(data, content, actions.filter(Boolean));
         }
 
-        // --- Event Delegation ---
-        adminContent.addEventListener('click', (e) => {
+        document.getElementById('admin-content').addEventListener('click', (e) => {
             const target = e.target.closest('button');
             if (!target) return;
 

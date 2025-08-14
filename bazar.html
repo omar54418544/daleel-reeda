@@ -6,9 +6,23 @@
     <title>سوق القرية - خدمات قرية ريدة اونلاين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .hidden { display: none; }
+        .pending-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: #555;
+            backdrop-filter: blur(2px);
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -47,7 +61,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -70,51 +84,63 @@
         async function init() {
             try {
                 await signInAnonymously(auth);
-                listenForBazarItems();
+                listenForAllItems();
             } catch (error) {
                 console.error("Authentication failed:", error);
                 loadingIndicator.textContent = 'فشل تحميل البيانات.';
             }
         }
 
-        function listenForBazarItems() {
-            const bazarRef = collection(db, "bazar_items");
-            const q = query(bazarRef, orderBy("createdAt", "desc"));
+        function listenForAllItems() {
+            const approvedRef = collection(db, "bazar_items");
+            const pendingRef = collection(db, "pending_bazar_items");
 
-            onSnapshot(q, (snapshot) => {
-                loadingIndicator.classList.add('hidden');
-                bazarContainer.innerHTML = ''; // Clear previous items
+            const qApproved = query(approvedRef, orderBy("createdAt", "desc"));
+            const qPending = query(pendingRef, orderBy("createdAt", "desc"));
 
-                if (snapshot.empty) {
-                    noItemsMessage.classList.remove('hidden');
-                    return;
-                }
-                
-                noItemsMessage.classList.add('hidden');
-                snapshot.forEach(doc => {
-                    renderItemCard({ id: doc.id, ...doc.data() });
+            const updateView = () => {
+                Promise.all([getDocs(qApproved), getDocs(qPending)]).then(([approvedSnapshot, pendingSnapshot]) => {
+                    const approvedItems = approvedSnapshot.docs.map(doc => ({ id: doc.id, status: 'approved', ...doc.data() }));
+                    const pendingItems = pendingSnapshot.docs.map(doc => ({ id: doc.id, status: 'pending', ...doc.data() }));
+                    
+                    const allItems = [...pendingItems, ...approvedItems];
+                    
+                    loadingIndicator.classList.add('hidden');
+                    bazarContainer.innerHTML = ''; 
+
+                    if (allItems.length === 0) {
+                        noItemsMessage.classList.remove('hidden');
+                    } else {
+                        noItemsMessage.classList.add('hidden');
+                        allItems.forEach(item => renderItemCard(item));
+                    }
                 });
-            }, (error) => {
-                console.error("Error fetching bazar items:", error);
-                loadingIndicator.textContent = 'حدث خطأ أثناء جلب الإعلانات.';
-            });
+            };
+
+            onSnapshot(qApproved, updateView);
+            onSnapshot(qPending, updateView);
         }
 
         function renderItemCard(item) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-md flex flex-col overflow-hidden';
+            card.className = 'bg-white rounded-lg shadow-md flex flex-col overflow-hidden relative';
             
             const whatsappLinkNumber = `2${item.contactPhone}`;
+            const pendingOverlay = item.status === 'pending' 
+                ? `<div class="pending-overlay"><i class="fas fa-hourglass-half fa-2x"></i><span class="font-bold">قيد المراجعة</span></div>` 
+                : '';
+            const contactButton = item.status === 'approved'
+                ? `<a href="https://wa.me/${whatsappLinkNumber}" target="_blank" class="mt-auto w-full block text-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition">تواصل عبر واتساب</a>`
+                : `<button disabled class="mt-auto w-full block text-center bg-gray-400 text-white font-bold py-2 px-4 rounded-lg cursor-not-allowed">تواصل عبر واتساب</button>`;
 
             card.innerHTML = `
+                ${pendingOverlay}
                 <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-56 object-cover">
                 <div class="p-4 flex-grow flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
                     <p class="text-2xl font-bold text-teal-600 mb-3">${item.price} جنيه</p>
                     <p class="text-gray-600 flex-grow mb-4">${item.description}</p>
-                    <a href="https://wa.me/${whatsappLinkNumber}" target="_blank" class="mt-auto w-full block text-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition">
-                        تواصل عبر واتساب
-                    </a>
+                    ${contactButton}
                 </div>
             `;
             bazarContainer.appendChild(card);
