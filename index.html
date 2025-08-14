@@ -137,6 +137,9 @@
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
             <a href="#community-services" class="block py-2 px-4 text-sm hover:bg-teal-50">خدمات المجتمع</a>
             <a href="polls.html" class="block py-2 px-4 text-sm hover:bg-teal-50">استطلاعات الرأي</a>
+            <div class="p-2">
+                <a href="add-service.html" class="block w-full text-center py-2 px-4 text-sm bg-orange-500 text-white font-bold rounded-lg">أضف نفسك للدليل</a>
+            </div>
         </div>
     </header>
 
@@ -304,19 +307,82 @@
         </div>
     </footer>
 
-    <!-- Install Prompt Banners & Modals (omitted for brevity, same as before) -->
+    <!-- ## MODIFIED: Install Banner updated with new text and icon -->
+    <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex items-center justify-between transform translate-y-full shadow-lg z-50">
+        <div class="flex items-center">
+            <img src="icons/icon-192x192.png" alt="App Icon" class="w-12 h-12 rounded-lg ml-4">
+            <div>
+                <h3 class="font-bold">حمّل تطبيق القرية على هاتفك</h3>
+                <p class="text-sm text-gray-300">وصول أسرع لكل الخدمات.</p>
+            </div>
+        </div>
+        <button id="install-btn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition flex items-center gap-2">
+            <i class="fas fa-download"></i>
+            <span>تثبيت</span>
+        </button>
+    </div>
+    
+    <div id="in-app-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold mb-4">فتح في المتصفح</h2>
+            <p class="text-gray-600 mb-4">لأفضل تجربة وتثبيت التطبيق، يرجى فتح الموقع في متصفحك الأساسي.</p>
+            <img src="images/open-in-browser.gif" alt="How to open in browser" class="w-full rounded-lg mb-6 border">
+            <button id="close-in-app-modal-btn" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition">فهمت</button>
+        </div>
+    </div>
+    <div id="ios-install-banner" class="fixed bottom-0 left-0 right-0 bg-blue-500 text-white p-4 text-center transform translate-y-full shadow-lg z-50">
+        <p>لتثبيت التطبيق، اضغط على زر المشاركة <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 8m4-4v12"></path></svg> ثم "إضافة إلى الشاشة الرئيسية".</p>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, getDocs, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // PWA & UI Logic (same as before, omitted for brevity)
-        (function() {
+        // ## MODIFIED: PWA logic moved into its own function for clarity
+        function setupPWA() {
             const menuButton = document.getElementById('menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             menuButton.addEventListener('click', () => mobileMenu.classList.toggle('menu-hidden'));
-        })();
+
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('ServiceWorker registration failed: ', err));
+                });
+            }
+
+            let deferredPrompt;
+            const installBanner = document.getElementById('install-banner');
+            const installBtn = document.getElementById('install-btn');
+            const inAppModal = document.getElementById('in-app-modal');
+            const closeInAppModalBtn = document.getElementById('close-in-app-modal-btn');
+            const iosInstallBanner = document.getElementById('ios-install-banner');
+
+            function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; }
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf('Instagram') > -1) || (ua.indexOf('Messenger') > -1);
+
+            if (isInApp) { inAppModal.classList.remove('hidden'); }
+            else if (isIOS() && !window.navigator.standalone) { iosInstallBanner.style.transform = 'translateY(0)'; }
+
+            closeInAppModalBtn.addEventListener('click', () => inAppModal.classList.add('hidden'));
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (!isInApp && !isIOS()) { installBanner.style.transform = 'translateY(0)'; }
+            });
+
+            installBtn.addEventListener('click', async () => {
+                installBanner.style.transform = 'translateY(100%)';
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                }
+            });
+        }
+        setupPWA();
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -458,7 +524,6 @@
                 const card = document.createElement('div');
                 card.id = `card-${person.id}`;
                 const whatsappLinkNumber = `2${person.whatsappPhone || person.phone}`;
-                // ## MODIFIED: Changed object-cover to object-contain and added a background
                 const imageOrIcon = person.imageUrl
                     ? `<button onclick="openImageModal('${person.imageUrl}')" class="w-20 h-20 md:w-24 md:h-24 rounded-lg mx-auto mb-2 md:mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"><img src="${person.imageUrl}" alt="${person.name}" class="w-full h-full object-contain border-2 border-gray-200 bg-gray-100 rounded-lg"></button>`
                     : `<div class="w-20 h-20 md:w-24 md:h-24 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center mb-2 md:mb-4 mx-auto border-2 border-gray-200"><svg class="w-10 h-10 md:w-12 md:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
