@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خدمات قرية ريدة اونلاين</title>
 
+    <!-- PWA Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+
     <!-- Social Media Sharing Tags -->
     <meta property="og:title" content="خدمات قرية ريدة اونلاين | كل خدمات القرية في مكان واحد" />
     <meta property="og:description" content="المكان الذي يجمعنا.. لخدمة مجتمعنا وتسهيل حياتنا اليومية." />
@@ -192,8 +196,35 @@
             </div>
         </section>
 
+        <!-- New Institutions Section -->
+        <section id="institutions" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                 <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">خدمات ومؤسسات هامة</h2>
+                    <p class="text-gray-600 mt-2">معلومات عن الخدمات والمؤسسات الحيوية في القرية.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Health Card -->
+                    <a href="health.html" class="block bg-white rounded-lg shadow-xl overflow-hidden transform hover:-translate-y-2 transition duration-300 p-6 text-center">
+                        <h3 class="font-bold text-xl mb-2">خدمات الصحة</h3>
+                        <p class="text-gray-700">معلومات عن الوحدة الصحية والصيدليات.</p>
+                    </a>
+                    <!-- Agriculture Card -->
+                    <a href="agriculture.html" class="block bg-white rounded-lg shadow-xl overflow-hidden transform hover:-translate-y-2 transition duration-300 p-6 text-center">
+                        <h3 class="font-bold text-xl mb-2">خدمات الزراعة</h3>
+                        <p class="text-gray-700">دليل المهندسين ومحلات المبيدات.</p>
+                    </a>
+                    <!-- Council Card -->
+                    <a href="council.html" class="block bg-white rounded-lg shadow-xl overflow-hidden transform hover:-translate-y-2 transition duration-300 p-6 text-center">
+                        <h3 class="font-bold text-xl mb-2">مجلس قروي بني محمد سلطان</h3>
+                        <p class="text-gray-700">معلومات وخدمات المجلس القروي.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <!-- Education Section -->
-        <section id="education" class="py-16 bg-white">
+        <section id="education" class="py-16 bg-gray-50">
             <div class="container mx-auto px-6">
                  <div class="text-center mb-12">
                     <h2 class="text-3xl font-bold text-gray-800">المدارس والتعليم</h2>
@@ -256,6 +287,17 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- PWA Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
