@@ -185,7 +185,13 @@
 
         function loadTabContent(tabName) {
             const container = document.getElementById(`${tabName}-tab-content`);
-            container.innerHTML = `<div class="text-center py-10">جاري التحميل...</div>`;
+            // ## MODIFIED: Added a spinner icon for loading
+            container.innerHTML = `
+                <div class="text-center py-20">
+                    <i class="fas fa-spinner fa-spin text-teal-500 text-4xl"></i>
+                    <p class="mt-4 text-gray-600">جاري تحميل البيانات...</p>
+                </div>
+            `;
             const loaders = {
                 services: loadServicesManagement,
                 events: loadEventsManagement,
@@ -194,7 +200,6 @@
             loaders[tabName](container);
         }
 
-        // ## NEW: Image resizing function
         async function resizeImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.8) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -338,7 +343,6 @@
             const imageFile = formData.get('imageFile');
             if (imageFile && imageFile.size > 0) {
                 try {
-                    // ## MODIFIED: Resize image before uploading
                     const resizedBlob = await resizeImage(imageFile);
                     const imageFormData = new FormData();
                     imageFormData.append('file', resizedBlob, imageFile.name);
