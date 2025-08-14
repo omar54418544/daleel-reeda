@@ -111,6 +111,13 @@
         #search-results {
             transition: opacity 0.5s ease-in-out;
         }
+        /* ## NEW: Style to move FAB up when banner is visible */
+        .fab {
+            transition: bottom 0.3s ease-in-out;
+        }
+        body.banner-visible .fab {
+            bottom: 6.5rem; /* ~104px, to be above the install banner */
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -119,7 +126,6 @@
     <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="text-xl md:text-2xl font-bold text-teal-700">خدمات قرية ريدة اونلاين</a>
-            <!-- ## MODIFIED: "Add yourself" button removed from desktop nav -->
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
                 <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
                 <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
@@ -132,7 +138,6 @@
                 </button>
             </div>
         </nav>
-        <!-- ## MODIFIED: "Add yourself" button removed from mobile menu -->
         <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
@@ -305,8 +310,8 @@
         </div>
     </footer>
 
-    <!-- ## NEW: Floating Action Button -->
-    <a href="add-service.html" class="fixed bottom-6 left-6 z-40 bg-orange-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300" title="أضف نفسك للدليل">
+    <!-- ## MODIFIED: Added "fab" class to the floating button -->
+    <a href="add-service.html" class="fab fixed bottom-6 left-6 z-40 bg-orange-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300" title="أضف نفسك للدليل">
         <i class="fas fa-plus fa-2x"></i>
     </a>
 
@@ -365,18 +370,25 @@
             const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf('Instagram') > -1) || (ua.indexOf('Messenger') > -1);
 
             if (isInApp) { inAppModal.classList.remove('hidden'); }
-            else if (isIOS() && !window.navigator.standalone) { iosInstallBanner.style.transform = 'translateY(0)'; }
+            else if (isIOS() && !window.navigator.standalone) {
+                iosInstallBanner.style.transform = 'translateY(0)';
+                document.body.classList.add('banner-visible'); // ## ADDED
+            }
 
             closeInAppModalBtn.addEventListener('click', () => inAppModal.classList.add('hidden'));
 
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                if (!isInApp && !isIOS()) { installBanner.style.transform = 'translateY(0)'; }
+                if (!isInApp && !isIOS()) {
+                    installBanner.style.transform = 'translateY(0)';
+                    document.body.classList.add('banner-visible'); // ## ADDED
+                }
             });
 
             installBtn.addEventListener('click', async () => {
                 installBanner.style.transform = 'translateY(100%)';
+                document.body.classList.remove('banner-visible'); // ## ADDED
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     await deferredPrompt.userChoice;
