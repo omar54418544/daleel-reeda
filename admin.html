@@ -5,151 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - خدمات قرية ريدة اونلاين</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .hidden { display: none; }
-        .tab-active {
+        .tab-btn.active {
             border-color: #0d9488; /* teal-600 */
             color: #0d9488;
             background-color: #f0fdfa; /* teal-50 */
         }
-        .modal {
-            animation: fadeIn 0.3s ease-out;
+        .tab-content, .modal { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-content { animation: slideInUp 0.3s ease-out; }
+        @keyframes slideInUp { from { transform: translateY(20px); } to { transform: translateY(0); } }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <!-- Password Modal -->
-    <div id="password-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-4 text-center">دخول لوحة التحكم</h2>
-            <p class="text-center text-gray-600 mb-6">الرجاء إدخال كلمة المرور للمتابعة.</p>
-            <form id="password-form">
-                <input type="password" id="password-input" class="w-full px-4 py-2 border rounded-lg mb-4 text-center" placeholder="كلمة المرور">
-                <button type="submit" class="w-full bg-teal-600 text-white font-bold py-2 rounded-lg hover:bg-teal-700">دخول</button>
-                <p id="error-message" class="text-red-500 text-sm text-center mt-2 hidden">كلمة المرور غير صحيحة.</p>
+            <h2 class="text-2xl font-bold mb-4 text-center">تسجيل دخول المدير</h2>
+            <form id="login-form">
+                <input type="email" id="email-input" class="w-full px-4 py-2 border rounded-lg mb-4" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="password-input" class="w-full px-4 py-2 border rounded-lg mb-4" placeholder="كلمة المرور" required>
+                <button type="submit" id="login-btn" class="w-full bg-teal-600 text-white font-bold py-2 rounded-lg hover:bg-teal-700">دخول</button>
+                <p id="error-message" class="text-red-500 text-sm text-center mt-2 hidden"></p>
             </form>
         </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden modal">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <h2 class="text-2xl font-bold mb-6">تعديل بيانات الخدمة</h2>
-            <form id="edit-form">
-                <input type="hidden" id="edit-id">
-                <!-- Image Upload in Edit -->
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-bold mb-2">الصورة</label>
-                    <div class="flex items-center gap-4">
-                        <img id="edit-image-preview" src="https://placehold.co/100x100/e2e8f0/e2e8f0?text=+" alt="معاينة الصورة" class="w-24 h-24 rounded-lg object-contain border bg-gray-50">
-                        <input type="file" id="edit-image-upload" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" accept="image/png, image/jpeg, image/webp">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="mb-4">
-                        <label for="edit-name" class="block text-gray-700 font-bold mb-2">الاسم</label>
-                        <input type="text" id="edit-name" class="w-full px-3 py-2 border rounded-lg" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="edit-phone" class="block text-gray-700 font-bold mb-2">الهاتف</label>
-                        <input type="tel" id="edit-phone" class="w-full px-3 py-2 border rounded-lg" required>
-                    </div>
-                     <div class="mb-4">
-                        <label for="edit-profession" class="block text-gray-700 font-bold mb-2">المهنة</label>
-                        <select id="edit-profession" class="w-full px-3 py-2 border bg-white rounded-lg" required></select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="edit-whatsapp" class="block text-gray-700 font-bold mb-2">واتساب</label>
-                        <input type="tel" id="edit-whatsapp" class="w-full px-3 py-2 border rounded-lg">
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="edit-description" class="block text-gray-700 font-bold mb-2">الوصف</label>
-                    <textarea id="edit-description" rows="3" class="w-full px-3 py-2 border rounded-lg"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="edit-address" class="block text-gray-700 font-bold mb-2">العنوان</label>
-                    <input type="text" id="edit-address" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" id="cancel-edit-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
-                    <button type="submit" id="save-changes-btn" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center">
-                        <span id="save-btn-text">حفظ التعديلات</span>
-                        <div id="save-spinner" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin hidden"></div>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Image Viewer Modal -->
-    <div id="image-viewer-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60] hidden p-4 transition-opacity duration-300">
-        <div class="relative bg-white p-2 rounded-lg max-w-lg w-full">
-            <button id="close-modal-btn" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-800 shadow-lg">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <img id="modal-image" src="" alt="معاينة الصورة" class="w-full h-auto max-h-[80vh] object-contain rounded">
-        </div>
-    </div>
-
-
-    <!-- Main Admin Content (Initially Hidden) -->
+    <!-- Main Admin Content -->
     <main id="admin-content" class="hidden">
-        <header class="bg-white shadow-sm sticky top-0 z-40">
+        <header class="bg-white shadow-sm sticky top-0 z-30">
             <div class="container mx-auto px-6 py-4 flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-teal-600">لوحة التحكم</h1>
-                <a href="index.html" class="text-gray-600 hover:text-teal-600 transition">&larr; العودة للموقع</a>
+                <div>
+                    <span id="admin-email" class="text-sm text-gray-500 ml-4"></span>
+                    <button id="logout-btn" class="text-sm text-red-500 hover:underline">تسجيل الخروج</button>
+                </div>
             </div>
-            <!-- Tabs -->
+            <!-- Tabs Navigation -->
             <div class="border-b border-gray-200">
-                <nav class="container mx-auto px-6 -mb-px flex space-x-6 space-x-reverse" aria-label="Tabs">
-                    <button id="pending-tab" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm tab-active">
-                        طلبات قيد المراجعة <span id="pending-count" class="bg-yellow-200 text-yellow-800 ml-2 px-2 py-0.5 rounded-full text-xs">0</span>
-                    </button>
-                    <button id="approved-tab" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                        إدارة الدليل <span id="approved-count" class="bg-gray-200 text-gray-800 ml-2 px-2 py-0.5 rounded-full text-xs">0</span>
-                    </button>
+                <nav class="container mx-auto px-6 -mb-px flex space-x-4 space-x-reverse overflow-x-auto" aria-label="Tabs">
+                    <button data-tab="services" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm active">إدارة الدليل</button>
+                    <button data-tab="events" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">إدارة المناسبات</button>
+                    <button data-tab="bazar" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">إدارة السوق</button>
                 </nav>
             </div>
         </header>
 
-        <!-- Pending Tab Content -->
-        <div id="pending-content" class="container mx-auto px-6 py-8">
-            <div id="pending-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-            <div id="no-pending-message" class="text-center py-20 hidden">
-                <h2 class="text-3xl font-bold text-gray-500">لا توجد طلبات جديدة للمراجعة</h2>
-                <p class="text-gray-400 mt-2">سيتم عرض الإضافات الجديدة هنا عند إرسالها من قبل المستخدمين.</p>
-            </div>
-        </div>
-
-        <!-- Approved Tab Content -->
-        <div id="approved-content" class="hidden container mx-auto px-6 py-8">
-             <div class="mb-6">
-                <input type="text" id="approved-search" class="w-full p-3 border rounded-lg" placeholder="ابحث بالاسم أو المهنة أو رقم الهاتف...">
-             </div>
-             <div id="approved-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-             <div id="no-approved-message" class="text-center py-20 hidden">
-                <h2 class="text-3xl font-bold text-gray-500">الدليل فارغ حالياً</h2>
-                <p class="text-gray-400 mt-2">بعد الموافقة على الطلبات، ستظهر الخدمات المعتمدة هنا لإدارتها.</p>
-            </div>
+        <div class="container mx-auto px-6 py-8">
+            <div id="services-tab-content" class="tab-content"></div>
+            <div id="events-tab-content" class="tab-content hidden"></div>
+            <div id="bazar-tab-content" class="tab-content hidden"></div>
         </div>
     </main>
 
+    <!-- Image Viewer Modal -->
+    <div id="image-viewer-modal" class="modal fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden p-4">
+        <div class="relative bg-white p-2 rounded-lg max-w-3xl w-full modal-content">
+            <button onclick="closeModal('image-viewer-modal')" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-800 shadow-lg z-10">
+                <i class="fas fa-times w-6 h-6"></i>
+            </button>
+            <img id="modal-image" src="" alt="معاينة الصورة" class="w-full h-auto max-h-[85vh] object-contain rounded">
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="edit-item-modal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 hidden p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold">تعديل العنصر</h3>
+                    <button onclick="closeModal('edit-item-modal')" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                </div>
+                <form id="edit-item-form" class="space-y-4">
+                    <div id="edit-fields-container" class="space-y-4"></div>
+                    <div class="flex justify-end gap-4 pt-4 border-t">
+                        <button type="button" onclick="closeModal('edit-item-modal')" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">إلغاء</button>
+                        <button type="submit" id="save-changes-btn" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700 flex items-center justify-center">
+                            <span id="save-btn-text">حفظ التغييرات</span>
+                            <div id="save-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, addDoc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, addDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
             authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
@@ -159,225 +123,217 @@
             appId: "1:143708510584:web:46389c2a63a53797e2908d"
         };
         
-        // --- Cloudinary Configuration ---
         const CLOUDINARY_CLOUD_NAME = "dmv4i571b";
         const CLOUDINARY_UPLOAD_PRESET = "iiymo4cr";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-        
-        // --- Basic Config ---
-        const ADMIN_PASSWORD = "reeda2025";
-        const professions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
 
-        // --- Global State ---
-        let allApprovedData = [];
-        let newImageFile = null;
-
-        // --- DOM Elements ---
-        const passwordModal = document.getElementById('password-modal');
-        const passwordForm = document.getElementById('password-form');
+        // --- Global DOM Elements ---
+        const loginModal = document.getElementById('login-modal');
         const adminContent = document.getElementById('admin-content');
-        const approvedSearchInput = document.getElementById('approved-search');
-        const editModal = document.getElementById('edit-modal');
-        const editForm = document.getElementById('edit-form');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-        const imageViewerModal = document.getElementById('image-viewer-modal');
-        const modalImage = document.getElementById('modal-image');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const editImageUpload = document.getElementById('edit-image-upload');
-        const editImagePreview = document.getElementById('edit-image-preview');
-        
-        // --- Authentication & Authorization ---
-        passwordForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (document.getElementById('password-input').value === ADMIN_PASSWORD) {
-                passwordModal.classList.add('hidden');
+        const logoutBtn = document.getElementById('logout-btn');
+        const editItemForm = document.getElementById('edit-item-form');
+
+        // --- Global Functions ---
+        window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+        window.openImageModal = (imageUrl) => {
+            if (!imageUrl || imageUrl.includes('placehold.co')) return;
+            document.getElementById('modal-image').src = imageUrl;
+            document.getElementById('image-viewer-modal').classList.remove('hidden');
+        };
+
+        // --- Authentication ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loginModal.classList.add('hidden');
                 adminContent.classList.remove('hidden');
-                authenticateAndFetch();
+                document.getElementById('admin-email').textContent = user.email;
+                initAdminPanel();
             } else {
-                document.getElementById('error-message').classList.remove('hidden');
+                loginModal.classList.remove('hidden');
+                adminContent.classList.add('hidden');
             }
         });
 
-        async function authenticateAndFetch() {
-            try {
-                await signInAnonymously(auth);
-                console.log("Admin authenticated.");
-                populateProfessionSelects();
-                listenForPendingEntries();
-                listenForApprovedEntries();
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                alert("فشل الاتصال بقاعدة البيانات. تأكد من صحة بيانات Firebase ومن إضافة نطاق الموقع إلى قائمة النطاقات المسموح بها.");
-            }
-        }
-        
-        // --- Tab Switching Logic ---
-        document.getElementById('pending-tab').addEventListener('click', () => switchTab('pending'));
-        document.getElementById('approved-tab').addEventListener('click', () => switchTab('approved'));
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => {
+                    const errorMsg = document.getElementById('error-message');
+                    errorMsg.textContent = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+                    errorMsg.classList.remove('hidden');
+                });
+        });
 
-        function switchTab(tabName) {
-            const pendingContent = document.getElementById('pending-content');
-            const approvedContent = document.getElementById('approved-content');
-            if (tabName === 'pending') {
-                pendingContent.classList.remove('hidden');
-                approvedContent.classList.add('hidden');
-                document.getElementById('pending-tab').classList.add('tab-active');
-                document.getElementById('approved-tab').classList.remove('tab-active');
-            } else {
-                approvedContent.classList.remove('hidden');
-                pendingContent.classList.add('hidden');
-                document.getElementById('approved-tab').classList.add('tab-active');
-                document.getElementById('pending-tab').classList.remove('tab-active');
-            }
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        // --- Admin Panel ---
+        function initAdminPanel() {
+            setupTabs();
+            loadTabContent('services');
         }
 
-        // --- Firestore Logic ---
-        function listenForPendingEntries() {
-            const pendingCollection = collection(db, "pending_services");
-            onSnapshot(pendingCollection, (snapshot) => {
-                const container = document.getElementById('pending-list');
-                container.innerHTML = '';
-                document.getElementById('pending-count').textContent = snapshot.size;
-                if (snapshot.empty) {
-                    document.getElementById('no-pending-message').classList.remove('hidden');
-                } else {
-                    document.getElementById('no-pending-message').classList.add('hidden');
-                    snapshot.forEach(doc => renderCard(doc.data(), doc.id, 'pending', container));
-                }
-            }, (error) => {
-                console.error("Error listening to pending services:", error);
-                alert("خطأ في الاتصال بقائمة المراجعة.");
+        function setupTabs() {
+            document.querySelectorAll('.tab-btn').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                    document.getElementById(`${targetTab}-tab-content`).classList.remove('hidden');
+                    loadTabContent(targetTab);
+                });
             });
         }
 
-        function listenForApprovedEntries() {
-            const servicesCollection = collection(db, "services");
-            onSnapshot(servicesCollection, (snapshot) => {
-                allApprovedData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                document.getElementById('approved-count').textContent = snapshot.size;
-                renderFilteredApproved();
-            }, (error) => {
-                console.error("Error listening to services:", error);
-                alert("خطأ في الاتصال بالدليل العام.");
-            });
+        function loadTabContent(tabName) {
+            const container = document.getElementById(`${tabName}-tab-content`);
+            container.innerHTML = `<div class="text-center py-10">جاري التحميل...</div>`;
+            const loaders = {
+                services: loadServicesManagement,
+                events: loadEventsManagement,
+                bazar: loadBazarManagement
+            };
+            loaders[tabName](container);
         }
-        
-        window.approveEntry = async function(entryId) {
-            const docRef = doc(db, "pending_services", entryId);
-            const targetCollection = collection(db, "services");
-            try {
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const dataToApprove = { ...docSnap.data(), isFeatured: false }; // Ensure isFeatured is false by default
-                    await addDoc(targetCollection, dataToApprove);
-                    await deleteDoc(docRef);
-                    console.log(`Entry ${entryId} approved.`);
-                }
-            } catch (error) {
-                console.error("Error approving entry: ", error);
-                alert("حدث خطأ أثناء الموافقة على الطلب.");
+
+        // --- Generic Data Handlers ---
+        const approveItem = async (pendingColl, approvedColl, itemId) => {
+            const itemDoc = await getDoc(doc(db, pendingColl, itemId));
+            if (itemDoc.exists()) {
+                const data = itemDoc.data();
+                data.createdAt = serverTimestamp();
+                await addDoc(collection(db, approvedColl), data);
+                await deleteDoc(doc(db, pendingColl, itemId));
+                alert('تمت الموافقة بنجاح!');
             }
         };
 
-        window.deleteEntry = async function(entryId, type) {
-            const collectionName = type === 'pending' ? 'pending_services' : 'services';
-            const confirmationMessage = type === 'pending' 
-                ? "هل أنت متأكد من حذف هذا الطلب نهائياً؟"
-                : "هل أنت متأكد من حذف هذه الخدمة من الدليل؟ لا يمكن التراجع عن هذا الإجراء.";
+        const deleteItem = async (collectionName, itemId) => {
+            if (confirm('هل أنت متأكد من رغبتك في الحذف نهائياً؟')) {
+                await deleteDoc(doc(db, collectionName, itemId));
+                alert('تم الحذف بنجاح.');
+            }
+        };
+        
+        const toggleFeature = async (itemId, currentStatus) => {
+             await updateDoc(doc(db, "services", itemId), { isFeatured: !currentStatus });
+             alert('تم تحديث حالة التمييز بنجاح!');
+        };
+
+        const openEditModal = async (collectionName, itemId) => {
+            const itemDoc = await getDoc(doc(db, collectionName, itemId));
+            if (!itemDoc.exists()) { alert("العنصر غير موجود!"); return; }
+            const data = itemDoc.data();
+            const fieldsContainer = document.getElementById('edit-fields-container');
             
-            if (!confirm(confirmationMessage)) return;
-
-            const docRef = doc(db, collectionName, entryId);
-            try {
-                await deleteDoc(docRef);
-                console.log(`${type} entry ${entryId} deleted.`);
-            } catch (error) {
-                console.error(`Error deleting ${type} entry: `, error);
-                alert("حدث خطأ أثناء الحذف.");
-            }
-        };
-
-        window.toggleFeatured = async function(entryId, currentStatus) {
-            const docRef = doc(db, "services", entryId);
-            try {
-                await updateDoc(docRef, { isFeatured: !currentStatus });
-            } catch (error) { console.error("Error toggling featured status: ", error); }
-        };
-
-        // --- Edit Logic ---
-        editImageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                newImageFile = file;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    editImagePreview.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        window.openEditModal = async function(entryId) {
-            const docRef = doc(db, "services", entryId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const editSelect = document.getElementById('edit-profession');
-                
-                if (!professions.includes(data.profession)) {
-                    const customOption = new Option(data.profession, data.profession, true, true);
-                    editSelect.add(customOption);
+            const fieldDefinitions = {
+                services: [
+                    { id: 'imageUrl', label: 'الصورة', value: data.imageUrl, type: 'image' },
+                    { id: 'name', label: 'الاسم', value: data.name },
+                    { id: 'profession', label: 'المهنة', value: data.profession },
+                    { id: 'phone', label: 'الهاتف', value: data.phone },
+                    { id: 'whatsappPhone', label: 'واتساب', value: data.whatsappPhone },
+                    { id: 'address', label: 'العنوان', value: data.address },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' }
+                ],
+                events: [
+                    { id: 'imageUrl', label: 'الصورة', value: data.imageUrl, type: 'image' },
+                    { id: 'title', label: 'العنوان', value: data.title },
+                    { id: 'category', label: 'الفئة', value: data.category },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' },
+                    { id: 'contactInfo', label: 'معلومات التواصل', value: data.contactInfo }
+                ],
+                bazar_items: [
+                    { id: 'imageUrl', label: 'الصورة', value: data.imageUrl, type: 'image' },
+                    { id: 'title', label: 'العنوان', value: data.title },
+                    { id: 'price', label: 'السعر', value: data.price, type: 'number' },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' },
+                    { id: 'contactPhone', label: 'هاتف التواصل', value: data.contactPhone }
+                ]
+            };
+            
+            const typeKey = collectionName.replace('pending_', '');
+            fieldsContainer.innerHTML = fieldDefinitions[typeKey].map(f => {
+                if (f.type === 'image') {
+                    return `
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>
+                            <div class="flex items-center gap-4">
+                                <img id="edit-image-preview" src="${f.value || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=..'}" class="w-24 h-24 rounded-lg object-cover bg-gray-200">
+                                <div>
+                                    <input type="file" id="edit-image-upload" name="imageFile" class="hidden" accept="image/*">
+                                    <button type="button" onclick="document.getElementById('edit-image-upload').click()" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">تغيير الصورة</button>
+                                    <p class="text-xs text-gray-500 mt-1">اترك الحقل فارغاً لعدم تغيير الصورة.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
+                return `
+                    <div>
+                        <label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>
+                        ${f.type === 'textarea'
+                            ? `<textarea id="edit-${f.id}" name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg">${f.value || ''}</textarea>`
+                            : `<input type="${f.type || 'text'}" id="edit-${f.id}" name="${f.id}" value="${f.value || ''}" class="w-full px-3 py-2 border rounded-lg">`
+                        }
+                    </div>
+                `;
+            }).join('');
 
-                document.getElementById('edit-id').value = entryId;
-                document.getElementById('edit-name').value = data.name || '';
-                document.getElementById('edit-phone').value = data.phone || '';
-                document.getElementById('edit-whatsapp').value = data.whatsappPhone || '';
-                editSelect.value = data.profession || '';
-                document.getElementById('edit-description').value = data.description || '';
-                document.getElementById('edit-address').value = data.address || '';
-                editImagePreview.src = data.imageUrl || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=+';
-                newImageFile = null; // Reset file input state
-                editImageUpload.value = ''; // Clear file input
-                editModal.classList.remove('hidden');
-            }
+            document.getElementById('edit-image-upload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => { document.getElementById('edit-image-preview').src = event.target.result; };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            editItemForm.dataset.collection = collectionName;
+            editItemForm.dataset.id = itemId;
+            document.getElementById('edit-item-modal').classList.remove('hidden');
         };
 
-        cancelEditBtn.addEventListener('click', () => editModal.classList.add('hidden'));
-
-        editForm.addEventListener('submit', async (e) => {
+        editItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const saveBtn = document.getElementById('save-changes-btn');
             const saveBtnText = document.getElementById('save-btn-text');
             const saveSpinner = document.getElementById('save-spinner');
-            
+
             saveBtn.disabled = true;
             saveBtnText.classList.add('hidden');
             saveSpinner.classList.remove('hidden');
 
-            const entryId = document.getElementById('edit-id').value;
-            const docRef = doc(db, "services", entryId);
-            
-            let imageUrlToUpdate = editImagePreview.src.startsWith('https://placehold.co') ? '' : editImagePreview.src;
+            const { collection: collectionName, id: itemId } = e.target.dataset;
+            const formData = new FormData(e.target);
+            const updatedData = {};
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'imageFile') { updatedData[key] = value; }
+            }
 
-            if (newImageFile) {
-                const formData = new FormData();
-                formData.append('file', newImageFile);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const imageFile = formData.get('imageFile');
+            if (imageFile && imageFile.size > 0) {
                 try {
-                    const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-                    const data = await response.json();
-                    if (data.secure_url) {
-                        imageUrlToUpdate = data.secure_url;
-                    } else { throw new Error('Image upload failed'); }
+                    const imageFormData = new FormData();
+                    imageFormData.append('file', imageFile);
+                    imageFormData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                    
+                    const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: imageFormData });
+                    const imageData = await response.json();
+
+                    if (imageData.secure_url) {
+                        updatedData.imageUrl = imageData.secure_url;
+                    } else { throw new Error('فشل رفع الصورة من Cloudinary'); }
                 } catch (error) {
-                    console.error("Error uploading new image:", error);
-                    alert("حدث خطأ أثناء رفع الصورة الجديدة.");
+                    console.error("Error uploading image:", error);
+                    alert('حدث خطأ أثناء رفع الصورة الجديدة. لم يتم حفظ التغييرات.');
                     saveBtn.disabled = false;
                     saveBtnText.classList.remove('hidden');
                     saveSpinner.classList.add('hidden');
@@ -386,20 +342,12 @@
             }
 
             try {
-                await updateDoc(docRef, {
-                    name: document.getElementById('edit-name').value,
-                    phone: document.getElementById('edit-phone').value,
-                    whatsappPhone: document.getElementById('edit-whatsapp').value,
-                    profession: document.getElementById('edit-profession').value,
-                    description: document.getElementById('edit-description').value,
-                    address: document.getElementById('edit-address').value,
-                    imageUrl: imageUrlToUpdate
-                });
-                editModal.classList.add('hidden');
-                console.log(`Entry ${entryId} updated.`);
+                await updateDoc(doc(db, collectionName, itemId), updatedData);
+                alert('تم تحديث العنصر بنجاح!');
+                closeModal('edit-item-modal');
             } catch (error) {
-                console.error("Error updating entry: ", error);
-                alert("حدث خطأ أثناء حفظ التعديلات.");
+                console.error("Error updating document: ", error);
+                alert('فشل تحديث العنصر.');
             } finally {
                 saveBtn.disabled = false;
                 saveBtnText.classList.remove('hidden');
@@ -407,93 +355,113 @@
             }
         });
 
-        // --- Search & Rendering Logic ---
-        approvedSearchInput.addEventListener('input', renderFilteredApproved);
-
-        function renderFilteredApproved() {
-            const container = document.getElementById('approved-list');
-            const searchTerm = approvedSearchInput.value.toLowerCase();
-            const filteredData = allApprovedData.filter(p => 
-                (p.name && p.name.toLowerCase().includes(searchTerm)) || 
-                (p.profession && p.profession.toLowerCase().includes(searchTerm)) ||
-                (p.phone && p.phone.includes(searchTerm))
-            );
-            
-            container.innerHTML = '';
-            if (filteredData.length === 0 && allApprovedData.length > 0) {
-                 container.innerHTML = `<p class="text-center text-gray-500 col-span-full">لا توجد نتائج مطابقة لبحثك.</p>`;
-            } else if (allApprovedData.length === 0) {
-                 document.getElementById('no-approved-message').classList.remove('hidden');
-            }
-            else {
-                document.getElementById('no-approved-message').classList.add('hidden');
-                filteredData.forEach(person => renderCard(person, person.id, 'approved', container));
-            }
+        // --- Management Sections ---
+        function createManagementUI(container, titlePending, titleApproved, pendingColl, approvedColl, cardCreator) {
+            container.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4">${titlePending} (<span id="pending-count">0</span>)</h2>
+                <div id="pending-container" class="space-y-4 mb-12"></div>
+                <h2 class="text-2xl font-bold mb-4">${titleApproved} (<span id="approved-count">0</span>)</h2>
+                <div id="approved-container" class="space-y-4"></div>
+            `;
+            listenForCollection(pendingColl, 'pending-container', 'pending-count', cardCreator);
+            listenForCollection(approvedColl, 'approved-container', 'approved-count', cardCreator);
         }
 
-        function renderCard(person, id, type, container) {
-            const imageOrIcon = person.imageUrl 
-                ? `<button onclick="openImageModal('${person.imageUrl}')" class="w-24 h-24 rounded-lg mx-auto mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                       <img src="${person.imageUrl}" alt="${person.name}" class="w-full h-full object-contain border-2 border-gray-200 bg-gray-50 rounded-lg">
-                   </button>` 
-                : `<div class="w-24 h-24 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center mb-4 mx-auto border-2 border-gray-200"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1a2 2 0 01-2.828 0L8 12m0 0l-2-2a2 2 0 010-2.828L8 4m12 12V8m0 4H4m0 0l4-4m-4 4l4 4"></path></svg></div>`;
-            
-            let buttons;
-            if (type === 'pending') {
-                buttons = `
-                    <div class="mt-auto flex justify-around gap-3">
-                        <button onclick='approveEntry("${id}")' class="flex-1 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition">موافقة</button>
-                        <button onclick='deleteEntry("${id}", "pending")' class="flex-1 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition">حذف</button>
-                    </div>`;
-            } else { // approved
-                // **MODIFICATION**: Removed pinning logic
-                const isFeatured = person.isFeatured === true;
-                const featureButtonClass = isFeatured ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600';
-                const featureButtonText = isFeatured ? 'إلغاء التمييز' : 'تمييز';
+        const loadServicesManagement = (c) => createManagementUI(c, 'طلبات إضافة للدليل', 'الدليل العام', 'pending_services', 'services', createServiceCard);
+        const loadEventsManagement = (c) => createManagementUI(c, 'طلبات نشر إعلانات', 'الإعلانات المنشورة', 'pending_events', 'events', createEventCard);
+        const loadBazarManagement = (c) => createManagementUI(c, 'إعلانات سوق قيد المراجعة', 'إعلانات السوق المنشورة', 'pending_bazar_items', 'bazar_items', createBazarCard);
 
-                buttons = `
-                    <div class="mt-4 pt-4 border-t space-y-2">
-                         <button onclick='toggleFeatured("${id}", ${isFeatured})' class="w-full text-white font-bold py-2 px-4 rounded-lg transition ${featureButtonClass}">${featureButtonText}</button>
-                         <button onclick='openEditModal("${id}")' class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition">تعديل</button>
-                         <button onclick='deleteEntry("${id}", "approved")' class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800 transition">حذف</button>
-                    </div>`;
-            }
+        function listenForCollection(collectionName, containerId, countId, cardCreator) {
+            onSnapshot(collection(db, collectionName), (snapshot) => {
+                const container = document.getElementById(containerId);
+                const countSpan = document.getElementById(countId);
+                if (!container || !countSpan) return;
 
-            const card = `
-                <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col text-center">
-                    ${imageOrIcon}
-                    <h3 class="text-xl font-bold mb-1">${person.name}</h3>
-                    <p class="text-gray-500 mb-2">${person.profession}</p>
-                    <p class="text-blue-600 font-mono mb-4">${person.phone}</p>
-                    ${(person.description || person.address) ? `<div class="text-right text-sm border-t pt-3 mt-3 space-y-2 mb-4">${person.description ? `<p><strong class="font-bold">وصف:</strong> ${person.description}</p>` : ''}${person.address ? `<p><strong class="font-bold">عنوان:</strong> ${person.address}</p>` : ''}</div>` : ''}
-                    <div class="mt-auto">${buttons}</div>
-                </div>`;
-            container.innerHTML += card;
-        }
-
-        function populateProfessionSelects() {
-            const editSelect = document.getElementById('edit-profession');
-            editSelect.innerHTML = ''; // Clear previous options
-            professions.forEach(p => {
-                const option = new Option(p, p);
-                editSelect.add(option.cloneNode(true));
+                container.innerHTML = '';
+                countSpan.textContent = snapshot.size;
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500">لا توجد عناصر لعرضها.</p>';
+                    return;
+                }
+                snapshot.docs.sort((a,b) => (b.data().createdAt?.toDate() || 0) - (a.data().createdAt?.toDate() || 0)).forEach(doc => {
+                    container.appendChild(cardCreator({ id: doc.id, ...doc.data() }, collectionName));
+                });
             });
         }
-        
-        // --- Image Modal Logic ---
-        window.openImageModal = function(imageUrl) {
-            if (!imageUrl) return;
-            modalImage.src = imageUrl;
-            imageViewerModal.classList.remove('hidden');
+
+        // --- Card Creation Functions ---
+        function createCard(data, contentHtml, actions) {
+            const div = document.createElement('div');
+            div.className = 'bg-white p-4 rounded-lg shadow-md flex items-center justify-between flex-wrap gap-4';
+            div.innerHTML = `
+                <div class="flex items-center gap-4 flex-grow min-w-[200px]">
+                    <button data-action="view-image" data-url="${data.imageUrl || ''}" class="focus:outline-none flex-shrink-0">
+                        <img src="${data.imageUrl || 'https://placehold.co/64x64/e2e8f0/e2e8f0?text=..'}" alt="صورة مصغرة" class="w-16 h-16 rounded-lg object-cover bg-gray-200 hover:opacity-80 transition-opacity">
+                    </button>
+                    <div class="flex-grow">${contentHtml}</div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">${actions.join('')}</div>
+            `;
+            return div;
         }
 
-        closeModalBtn.addEventListener('click', () => {
-            imageViewerModal.classList.add('hidden');
-        });
+        function createServiceCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.name} (${data.profession})</p><p class="text-sm text-gray-600">${data.phone}</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="service" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                !isPending ? `<button data-action="feature" data-id="${data.id}" data-featured="${data.isFeatured || false}" class="${data.isFeatured ? 'bg-yellow-500' : 'bg-gray-400'} text-white px-3 py-1 rounded text-sm">${data.isFeatured ? 'مميز' : 'تمييز'}</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
+        
+        function createEventCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.title}</p><p class="text-sm text-gray-600">${data.category}</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="event" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
 
-        imageViewerModal.addEventListener('click', (e) => {
-            if (e.target === imageViewerModal) {
-                imageViewerModal.classList.add('hidden');
+        function createBazarCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.title}</p><p class="text-sm text-teal-600 font-semibold">${data.price} جنيه</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="bazar" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
+
+        // --- Event Delegation ---
+        adminContent.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            const { action, id, type, collection, featured, url } = target.dataset;
+            const collectionsMap = {
+                service: { pending: 'pending_services', approved: 'services' },
+                event: { pending: 'pending_events', approved: 'events' },
+                bazar: { pending: 'pending_bazar_items', approved: 'bazar_items' }
+            };
+
+            if (action === 'approve') {
+                const { pending, approved } = collectionsMap[type];
+                approveItem(pending, approved, id);
+            } else if (action === 'delete') {
+                deleteItem(collection, id);
+            } else if (action === 'feature') {
+                toggleFeature(id, featured === 'true');
+            } else if (action === 'edit') {
+                openEditModal(collection, id);
+            } else if (action === 'view-image') {
+                openImageModal(url);
             }
         });
 

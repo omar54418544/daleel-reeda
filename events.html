@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المناسبات والإعلانات - خدمات قرية ريدة اونلاين</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-xl md:text-2xl font-bold text-teal-700">خدمات قرية ريدة اونلاين</a>
+            <a href="index.html" class="text-gray-600 hover:text-teal-600 transition">&larr; العودة للرئيسية</a>
+        </nav>
+    </header>
+
+    <main class="py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800">لوحة المناسبات والإعلانات</h1>
+                <p class="text-gray-600 mt-2">تابع آخر المناسبات، الإعلانات الهامة، والمفقودات في قريتنا.</p>
+                <a href="add-event.html" class="mt-4 inline-block bg-orange-500 text-white font-bold px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+                    + أضف مناسبتك أو إعلانك
+                </a>
+            </div>
+
+            <div class="mb-8 border-b border-gray-200">
+                <nav class="flex justify-center -mb-px space-x-6 space-x-reverse" aria-label="Tabs">
+                    <button data-category="all" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-teal-600 border-teal-600">الكل</button>
+                    <button data-category="social" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent">مناسبات</button>
+                    <button data-category="announcement" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent">إعلانات هامة</button>
+                    <button data-category="lostfound" class="tab-btn whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent">مفقودات</button>
+                </nav>
+            </div>
+
+            <div id="loading-indicator" class="text-center py-12">
+                <div class="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p class="text-gray-500 mt-4">جاري تحميل الأحداث...</p>
+            </div>
+
+            <div id="events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+            <div id="no-events-message" class="text-center py-20 hidden">
+                <h2 class="text-2xl font-bold text-gray-500">لا توجد إعلانات في هذا القسم حالياً.</h2>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // ... (Firebase config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // ... (rest of the script is the same as before, but with renderEventCard updated)
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const eventsContainer = document.getElementById('events-container');
+        const noEventsMessage = document.getElementById('no-events-message');
+        const tabs = document.querySelectorAll('.tab-btn');
+        let allEvents = [];
+
+        async function init() {
+            try {
+                await signInAnonymously(auth);
+                listenForEvents();
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+        }
+
+        function listenForEvents() {
+            const eventsRef = collection(db, "events");
+            const q = query(eventsRef, orderBy("createdAt", "desc"));
+
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.classList.add('hidden');
+                allEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const activeTab = document.querySelector('.tab-btn.text-teal-600');
+                filterEvents(activeTab ? activeTab.dataset.category : 'all');
+            });
+        }
+
+        function filterEvents(category) {
+            eventsContainer.innerHTML = '';
+            const filtered = category === 'all' ? allEvents : allEvents.filter(event => event.category === category);
+
+            if (filtered.length === 0) {
+                noEventsMessage.classList.remove('hidden');
+            } else {
+                noEventsMessage.classList.add('hidden');
+                filtered.forEach(event => renderEventCard(event));
+            }
+            
+            tabs.forEach(tab => {
+                tab.classList.toggle('text-teal-600', tab.dataset.category === category);
+                tab.classList.toggle('border-teal-600', tab.dataset.category === category);
+                tab.classList.toggle('text-gray-500', tab.dataset.category !== category);
+                tab.classList.toggle('hover:text-gray-700', tab.dataset.category !== category);
+                tab.classList.toggle('hover:border-gray-300', tab.dataset.category !== category);
+                tab.classList.toggle('border-transparent', tab.dataset.category !== category);
+            });
+        }
+
+        function renderEventCard(event) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-md flex flex-col overflow-hidden';
+
+            const categoryColors = {
+                social: { bg: 'bg-pink-100', text: 'text-pink-800', name: 'مناسبة اجتماعية' },
+                announcement: { bg: 'bg-blue-100', text: 'text-blue-800', name: 'إعلان هام' },
+                lostfound: { bg: 'bg-yellow-100', text: 'text-yellow-800', name: 'مفقودات' }
+            };
+            const cat = categoryColors[event.category] || { bg: 'bg-gray-100', text: 'text-gray-800', name: 'عام' };
+            const eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+            const imageHtml = event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}" class="w-full h-48 object-cover">` : '';
+
+            card.innerHTML = `
+                ${imageHtml}
+                <div class="p-6 flex-grow flex flex-col">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold px-2 py-1 rounded-full ${cat.bg} ${cat.text}">${cat.name}</span>
+                            ${eventDate ? `<span class="text-sm text-gray-500">${eventDate}</span>` : ''}
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${event.title}</h3>
+                        <p class="text-gray-600 whitespace-pre-wrap">${event.description}</p>
+                    </div>
+                    ${event.contactInfo ? `
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-sm text-gray-700"><strong>للتواصل:</strong> ${event.contactInfo}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            eventsContainer.appendChild(card);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => filterEvents(tab.dataset.category));
+        });
+
+        init();
+    </script>
+</body>
+</html>
