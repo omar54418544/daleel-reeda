@@ -88,7 +88,7 @@
             }
         }
         /* --- Install Prompt Banner --- */
-        #install-banner, #in-app-banner {
+        #install-banner, #ios-install-banner {
             transition: transform 0.3s ease-in-out;
         }
     </style>
@@ -295,9 +295,19 @@
         <button id="install-btn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition">تثبيت</button>
     </div>
 
-    <!-- In-App Browser Banner -->
-    <div id="in-app-banner" class="fixed bottom-0 left-0 right-0 bg-yellow-400 text-yellow-900 p-4 text-center transform translate-y-full shadow-lg z-50">
-        <p>لأفضل تجربة وتثبيت التطبيق، يرجى فتح الموقع في متصفحك الأساسي.</p>
+    <!-- In-App Browser Modal -->
+    <div id="in-app-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold mb-4">فتح في المتصفح</h2>
+            <p class="text-gray-600 mb-4">لأفضل تجربة وتثبيت التطبيق، يرجى فتح الموقع في متصفحك الأساسي.</p>
+            <img src="images/open-in-browser.gif" alt="How to open in browser" class="w-full rounded-lg mb-6 border">
+            <button id="close-in-app-modal-btn" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition">فهمت</button>
+        </div>
+    </div>
+
+    <!-- iOS Install Instructions Banner -->
+    <div id="ios-install-banner" class="fixed bottom-0 left-0 right-0 bg-blue-500 text-white p-4 text-center transform translate-y-full shadow-lg z-50">
+        <p>لتثبيت التطبيق، اضغط على زر المشاركة <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 8m4-4v12"></path></svg> ثم "إضافة إلى الشاشة الرئيسية".</p>
     </div>
 
     <script type="module">
@@ -320,26 +330,36 @@
         let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
         const installBtn = document.getElementById('install-btn');
-        const inAppBanner = document.getElementById('in-app-banner');
+        const inAppModal = document.getElementById('in-app-modal');
+        const closeInAppModalBtn = document.getElementById('close-in-app-modal-btn');
+        const iosInstallBanner = document.getElementById('ios-install-banner');
 
-        // In-App browser detection
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
-        const isInstagram = (ua.indexOf('Instagram') > -1);
-        const isMessenger = (ua.indexOf('Messenger') > -1);
-        const isInApp = isFacebook || isInstagram || isMessenger;
-
-        if (isInApp) {
-            inAppBanner.style.transform = 'translateY(0)';
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         }
 
+        function isInStandaloneMode() {
+            return ('standalone' in window.navigator) && (window.navigator.standalone);
+        }
+
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isFacebook = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+        const isInApp = isFacebook || (ua.indexOf('Instagram') > -1) || (ua.indexOf('Messenger') > -1);
+
+        if (isInApp) {
+            inAppModal.classList.remove('hidden');
+        } else if (isIOS() && !isInStandaloneMode()) {
+            iosInstallBanner.style.transform = 'translateY(0)';
+        }
+
+        closeInAppModalBtn.addEventListener('click', () => {
+            inAppModal.classList.add('hidden');
+        });
+
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Show the install prompt banner only if not in an in-app browser
-            if (!isInApp) {
+            if (!isInApp && !isIOS()) {
                 installBanner.style.transform = 'translateY(0)';
             }
         });
