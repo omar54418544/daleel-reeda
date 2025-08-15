@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مواقيت الصلاة - البوابة الإسلامية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .loader { width: 48px; height: 48px; border: 5px solid #f3f4f6; border-bottom-color: #0d9488; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="../islamic-portal.html" class="text-xl md:text-2xl font-bold text-teal-700">البوابة الإسلامية</a>
+            <a href="../index.html" class="text-gray-600 hover:text-teal-600 transition">&larr; العودة للرئيسية</a>
+        </nav>
+    </header>
+    <main class="py-12">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div id="prayer-content" class="bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8"></div>
+        </div>
+    </main>
+    <footer class="bg-gray-800 text-white pt-12 pb-6 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500">&copy; ٢٠٢٥ - جميع الحقوق محفوظة لخدمات قرية ريدة اونلاين.</p>
+        </div>
+    </footer>
+    <script>
+        function showLoader(container) {
+            container.innerHTML = `<div class="flex justify-center items-center py-20"><div class="loader"></div></div>`;
+        }
+
+        function loadPrayerTab() {
+            const container = document.getElementById('prayer-content');
+            container.innerHTML = `
+                <h2 class="text-2xl md:text-3xl font-bold text-teal-700 mb-6 text-center">مواقيت الصلاة</h2>
+                <div id="prayer-controls" class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+                     <button id="auto-location-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                        <i class="fas fa-location-crosshairs"></i>
+                        تحديث موقعي
+                    </button>
+                    <span class="text-gray-500">أو</span>
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <select id="governorate-select" class="p-2 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                        <button id="manual-location-btn" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">بحث</button>
+                    </div>
+                </div>
+                <div id="prayer-results-container" class="text-center"></div>
+            `;
+            initPrayerTool();
+        }
+
+        function initPrayerTool() {
+            const autoBtn = document.getElementById('auto-location-btn');
+            const manualBtn = document.getElementById('manual-location-btn');
+            const governorateSelect = document.getElementById('governorate-select');
+            const resultsContainer = document.getElementById('prayer-results-container');
+            
+            const governorates = ["Cairo", "Giza", "Alexandria", "Dakahlia", "Sharqia", "Monufia", "Qalyubia", "Beheira", "Gharbia", "Port Said", "Damietta", "Ismailia", "Suez", "Kafr El Sheikh", "Fayoum", "Beni Suef", "Minya", "Asyut", "Sohag", "Qena", "Luxor", "Aswan", "Red Sea", "New Valley", "Matrouh", "North Sinai", "South Sinai"];
+            const governoratesArabic = ["القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "الشرقية", "المنوفية", "القليوبية", "البحيرة", "الغربية", "بورسعيد", "دمياط", "الإسماعيلية", "السويس", "كفر الشيخ", "الفيوم", "بني سويف", "المنيا", "أسيوط", "سوهاج", "قنا", "الأقصر", "أسوان", "البحر الأحمر", "الوادي الجديد", "مطروح", "شمال سيناء", "جنوب سيناء"];
+
+            governoratesArabic.forEach((gov, index) => {
+                governorateSelect.add(new Option(gov, governorates[index]));
+            });
+
+            function formatTime12Hour(time24) { /* ... same as before ... */ }
+            async function fetchPrayerTimes(method, params) { /* ... same as before ... */ }
+            function displayPrayerTimes(data) { /* ... same as before ... */ }
+            function triggerAutoLocation() { /* ... same as before ... */ }
+            
+            // Re-implementing functions
+            function formatTime12Hour(time24) {
+                const [hours, minutes] = time24.split(':');
+                const h = parseInt(hours, 10);
+                const suffix = h >= 12 ? 'مساءً' : 'صباحًا';
+                const h12 = ((h + 11) % 12 + 1);
+                return `${h12.toString().padStart(2, '0')}:${minutes} ${suffix}`;
+            }
+
+            async function fetchPrayerTimes(method, params) {
+                showLoader(resultsContainer);
+                try {
+                    const url = new URL(`https://api.aladhan.com/v1/${method}`);
+                    url.search = new URLSearchParams(params).toString();
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    displayPrayerTimes(data.data);
+                } catch (error) {
+                    resultsContainer.innerHTML = `<p class="text-red-500 p-4 bg-red-100 rounded-lg">فشل في جلب مواقيت الصلاة. يرجى المحاولة مرة أخرى.</p>`;
+                }
+            }
+
+            function displayPrayerTimes(data) {
+                const timings = data.timings;
+                const hijri = data.date.hijri;
+                const gregorian = data.date.gregorian;
+                const location = data.meta.timezone;
+                const prayerNameTranslations = { Fajr: "الفجر", Sunrise: "الشروق", Dhuhr: "الظهر", Asr: "العصر", Maghrib: "المغرب", Isha: "العشاء" };
+                const prayerOrder = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+                resultsContainer.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <p class="text-xl font-bold mb-2">مواقيت الصلاة لـ: <span class="text-teal-700">${location.replace('/', ', ').replace('_', ' ')}</span></p>
+                        <p class="text-lg">${hijri.weekday.ar}, ${hijri.day} ${hijri.month.ar} ${hijri.year} هـ</p>
+                        <p class="text-sm text-gray-500">${gregorian.weekday.en}, ${gregorian.date} م</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mt-4 max-w-4xl mx-auto">
+                        ${prayerOrder.map(name => {
+                            const time = timings[name];
+                            const arabicName = prayerNameTranslations[name];
+                            if (!time || !arabicName) return '';
+                            const time12 = formatTime12Hour(time);
+                            return `<div class="bg-white p-4 rounded-lg border-2 border-gray-100 shadow-sm"><p class="text-gray-600 font-bold">${arabicName}</p><p class="text-2xl font-bold text-teal-700">${time12}</p></div>`;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            function triggerAutoLocation() {
+                if (navigator.geolocation) {
+                    showLoader(resultsContainer);
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        const params = { latitude: pos.coords.latitude, longitude: pos.coords.longitude, method: 5 };
+                        fetchPrayerTimes('timings', params);
+                    }, () => {
+                        resultsContainer.innerHTML = `<p class="text-yellow-700 bg-yellow-100 p-4 rounded-lg">تم رفض الوصول إلى الموقع. يرجى اختيار المحافظة يدوياً.</p>`;
+                    });
+                } else {
+                    resultsContainer.innerHTML = `<p class="text-red-500 bg-red-100 p-4 rounded-lg">المتصفح لا يدعم تحديد الموقع. يرجى استخدام البحث اليدوي.</p>`;
+                }
+            }
+            
+            autoBtn.addEventListener('click', triggerAutoLocation);
+            manualBtn.addEventListener('click', () => {
+                const city = governorateSelect.value;
+                const params = { city, country: "Egypt", method: 5 };
+                fetchPrayerTimes('timingsByCity', params);
+            });
+
+            triggerAutoLocation();
+        }
+
+        loadPrayerTab();
+    </script>
+</body>
+</html>

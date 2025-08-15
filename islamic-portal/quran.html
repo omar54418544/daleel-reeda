@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحفيظ القرآن الكريم - دليل قرية ريدة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .hidden {
+            display: none;
+        }
+        .text-hidden {
+            color: transparent;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-teal-600">دليل قرية ريدة</a>
+            <a href="index.html" class="text-gray-600 hover:text-teal-600 transition duration-300">&larr; العودة للرئيسية</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-800">صفحة القرآن والذكر</h1>
+                <p class="text-gray-600 mt-2">استعن بالله.. استخدم الأدوات التالية للمساعدة على الحفظ والذكر.</p>
+            </div>
+
+            <!-- Quran Memorization Tool -->
+            <section id="memorization-tool" class="bg-white rounded-lg shadow-xl p-6 md:p-8 mb-12">
+                <h2 class="text-3xl font-bold text-teal-700 mb-6 text-center">أداة تحفيظ القرآن</h2>
+                
+                <!-- Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="surah-select" class="block text-sm font-bold text-gray-700 mb-1">اختر السورة</label>
+                        <select id="surah-select" class="w-full p-2 border bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                    </div>
+                    <div>
+                        <label for="reciter-select" class="block text-sm font-bold text-gray-700 mb-1">اختر القارئ</label>
+                        <select id="reciter-select" class="w-full p-2 border bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"></select>
+                    </div>
+                     <div>
+                         <label for="repeat-count" class="block text-sm font-bold text-gray-700 mb-1">تكرار كل آية</label>
+                        <input type="number" id="repeat-count" value="3" min="1" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-6">
+                    <div>
+                        <label for="ayah-from" class="block text-sm font-bold text-gray-700 mb-1">من آية</label>
+                        <input type="number" id="ayah-from" value="1" min="1" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label for="ayah-to" class="block text-sm font-bold text-gray-700 mb-1">إلى آية</label>
+                        <input type="number" id="ayah-to" value="7" min="1" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div class="flex items-center justify-center h-full pt-6">
+                        <input type="checkbox" id="loop-selection" class="ml-2 h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                        <label for="loop-selection" class="text-sm font-bold text-gray-700">تكرار المقطع المحدد</label>
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button id="start-btn" class="bg-teal-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-teal-700 transition flex items-center">
+                        <svg class="w-6 h-6 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <span id="start-btn-text">ابدأ</span>
+                        <div id="loading-spinner" class="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin hidden"></div>
+                    </button>
+                    <button id="stop-btn" class="bg-red-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-red-700 transition flex items-center">
+                         <svg class="w-6 h-6 ml-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg>
+                        إيقاف
+                    </button>
+                </div>
+
+                <!-- Display Area -->
+                <div id="display-area" class="mt-8 hidden">
+                    <div id="ayah-text" class="text-2xl md:text-3xl leading-loose text-center p-6 bg-yellow-50 border-r-4 border-yellow-400 mb-4" style="font-family: 'Amiri', serif;"></div>
+                    <div class="flex justify-center items-center gap-4">
+                        <audio id="audio-player" controls class="w-full max-w-md"></audio>
+                        <button id="toggle-text-btn" class="bg-gray-200 p-3 rounded-lg hover:bg-gray-300" title="إخفاء/إظهار النص">
+                            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hadith and Zikr Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <!-- Hadith of the Day -->
+                <section id="hadith-section" class="bg-white rounded-lg shadow-xl p-6 flex flex-col">
+                    <h3 class="text-2xl font-bold text-green-700 mb-4 text-center">حديث اليوم</h3>
+                    <div id="hadith-text" class="text-lg text-gray-800 leading-relaxed flex-grow"></div>
+                    <button id="new-hadith-btn" class="mt-4 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition self-center">حديث آخر</button>
+                </section>
+
+                <!-- Zikr of the Day -->
+                <section id="zikr-section" class="bg-white rounded-lg shadow-xl p-6 flex flex-col">
+                    <h3 class="text-2xl font-bold text-blue-700 mb-4 text-center">ذكر اليوم</h3>
+                    <div id="zikr-text" class="text-lg text-gray-800 leading-relaxed flex-grow"></div>
+                    <button id="new-zikr-btn" class="mt-4 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition self-center">ذكر آخر</button>
+                </section>
+            </div>
+
+
+            <!-- Quran Circles Section -->
+            <section id="quran-circles">
+                <h2 class="text-3xl font-bold text-teal-700 mb-6 border-r-4 border-teal-500 pr-4">أماكن التحفيظ بالقرية</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <div class="text-teal-600 mb-3">
+                           <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <h3 class="font-bold text-xl mb-2">الجمعية الشرعية</h3>
+                        <p class="text-gray-600">تقدم حلقات تحفيظ متنوعة للرجال والنساء والأطفال.</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                         <div class="text-teal-600 mb-3">
+                           <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <h3 class="font-bold text-xl mb-2">المجمع الإسلامي</h3>
+                         <p class="text-gray-600">يحتوي على حلقات تحفيظ ومكتبة إسلامية وأنشطة دعوية.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-12 pb-6 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500">&copy; ٢٠٢٥ - جميع الحقوق محفوظة لدليل قرية ريدة.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Tool Elements ---
+        const surahSelect = document.getElementById('surah-select');
+        const reciterSelect = document.getElementById('reciter-select');
+        const ayahFromInput = document.getElementById('ayah-from');
+        const ayahToInput = document.getElementById('ayah-to');
+        const repeatCountInput = document.getElementById('repeat-count');
+        const loopSelectionCheckbox = document.getElementById('loop-selection');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const startBtnText = document.getElementById('start-btn-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const displayArea = document.getElementById('display-area');
+        const ayahTextDiv = document.getElementById('ayah-text');
+        const audioPlayer = document.getElementById('audio-player');
+        const toggleTextBtn = document.getElementById('toggle-text-btn');
+
+        // --- Hadith & Zikr Elements ---
+        const hadithTextDiv = document.getElementById('hadith-text');
+        const newHadithBtn = document.getElementById('new-hadith-btn');
+        const zikrTextDiv = document.getElementById('zikr-text');
+        const newZikrBtn = document.getElementById('new-zikr-btn');
+
+        let isPlaying = false;
+        let stopPlayback = false;
+
+        // --- Data ---
+        const hadiths = [
+            { text: "قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان، والحمد لله تملأ الميزان، وسبحان الله والحمد لله تملآن -أو تملأ- ما بين السماوات والأرض»", source: "رواه مسلم" },
+            { text: "قال رسول الله صلى الله عليه وسلم: «من سلك طريقًا يلتمس فيه علمًا، سهل الله له به طريقًا إلى الجنة»", source: "رواه مسلم" },
+            { text: "قال رسول الله صلى الله عليه وسلم: «ما من عبد مسلم يدعو لأخيه بظهر الغيب، إلا قال الملك: ولك بمثل»", source: "رواه مسلم" },
+            { text: "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى»", source: "متفق عليه" },
+        ];
+        const azkar = [
+            "سبحان الله وبحمده، سبحان الله العظيم.",
+            "لا حول ولا قوة إلا بالله.",
+            "اللهم صلِّ وسلم على نبينا محمد.",
+            "أستغفر الله العظيم وأتوب إليه.",
+            "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر."
+        ];
+
+        // --- Hadith & Zikr Functions ---
+        function displayRandomItem(arr, element) {
+            const randomIndex = Math.floor(Math.random() * arr.length);
+            const item = arr[randomIndex];
+            if (typeof item === 'object') {
+                element.innerHTML = `<p>"${item.text}"</p><p class="text-sm text-gray-500 mt-2">${item.source}</p>`;
+            } else {
+                element.textContent = item;
+            }
+        }
+        newHadithBtn.addEventListener('click', () => displayRandomItem(hadiths, hadithTextDiv));
+        newZikrBtn.addEventListener('click', () => displayRandomItem(azkar, zikrTextDiv));
+
+
+        // --- Memorization Tool Functions ---
+        async function populateSurahs() {
+            try {
+                const response = await fetch('https://api.alquran.cloud/v1/meta');
+                const data = await response.json();
+                const surahs = data.data.surahs.references;
+                surahs.forEach(surah => {
+                    const option = new Option(`${surah.number} - ${surah.name}`, surah.number);
+                    surahSelect.appendChild(option);
+                });
+            } catch (error) { console.error("Failed to load Surahs:", error); }
+        }
+
+        async function populateReciters() {
+            try {
+                const response = await fetch('https://api.alquran.cloud/v1/edition?format=audio&language=ar&type=versebyverse');
+                const data = await response.json();
+                const reciters = data.data;
+                reciters.forEach(reciter => {
+                    const option = new Option(reciter.englishName, reciter.identifier);
+                    reciterSelect.appendChild(option);
+                });
+                reciterSelect.value = 'ar.alafasy';
+            } catch (error) { console.error("Failed to load reciters:", error); }
+        }
+        
+        async function startMemorization() {
+            if (isPlaying) return;
+            setLoading(true);
+            isPlaying = true;
+            stopPlayback = false;
+
+            const surahNumber = surahSelect.value;
+            const reciterIdentifier = reciterSelect.value;
+            const ayahFrom = parseInt(ayahFromInput.value);
+            const ayahTo = parseInt(ayahToInput.value);
+            const repeatCount = parseInt(repeatCountInput.value);
+            const loopSelection = loopSelectionCheckbox.checked;
+
+            try {
+                const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/${reciterIdentifier}`);
+                const data = await response.json();
+                const ayahs = data.data.ayahs;
+                displayArea.classList.remove('hidden');
+                
+                do {
+                    const ayahsToPlay = ayahs.slice(ayahFrom - 1, ayahTo);
+                    ayahTextDiv.textContent = ayahsToPlay.map(a => a.text).join(' ');
+
+                    for (const ayah of ayahsToPlay) {
+                        if (stopPlayback) break;
+                        for (let i = 0; i < repeatCount; i++) {
+                            if (stopPlayback) break;
+                            await playAyah(ayah);
+                        }
+                    }
+                    if (stopPlayback) break;
+                } while (loopSelection && !stopPlayback);
+
+            } catch (error) {
+                console.error("Error fetching or playing Ayahs:", error);
+                ayahTextDiv.textContent = "حدث خطأ. يرجى التأكد من أرقام الآيات والمحاولة مرة أخرى.";
+            } finally {
+                setLoading(false);
+                isPlaying = false;
+                stopPlayback = false;
+                ayahTextDiv.innerHTML = '';
+                displayArea.classList.add('hidden');
+            }
+        }
+
+        function playAyah(ayah) {
+            return new Promise(resolve => {
+                if (stopPlayback) { resolve(); return; }
+                ayahTextDiv.innerHTML = `<span class="bg-yellow-200 p-1">${ayah.text}</span>`;
+                audioPlayer.src = ayah.audio;
+                audioPlayer.play();
+                audioPlayer.onended = resolve;
+                audioPlayer.onerror = resolve;
+            });
+        }
+
+        function setLoading(isLoading) {
+            startBtn.disabled = isLoading;
+            stopBtn.disabled = !isLoading;
+            if (isLoading) {
+                startBtnText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                startBtnText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        toggleTextBtn.addEventListener('click', () => { ayahTextDiv.classList.toggle('text-hidden'); });
+        startBtn.addEventListener('click', startMemorization);
+        stopBtn.addEventListener('click', () => {
+            stopPlayback = true;
+            audioPlayer.pause();
+            audioPlayer.src = '';
+        });
+        
+        // --- Initial Load ---
+        setLoading(false);
+        populateSurahs();
+        populateReciters();
+        displayRandomItem(hadiths, hadithTextDiv);
+        displayRandomItem(azkar, zikrTextDiv);
+
+    </script>
+</body>
+</html>
