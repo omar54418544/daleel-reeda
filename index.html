@@ -33,6 +33,16 @@
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "45257fa1-4324-47da-9a57-b52b9cf5cf6a",
+          // --- START: Arabic Prompt Configuration ---
+          promptOptions: {
+            slidedown: {
+              enabled: true,
+              actionMessage: "نود إعلامك بآخر أخبار ومناسبات القرية.",
+              acceptButtonText: "السماح",
+              cancelButtonText: "رفض",
+            },
+          },
+          // --- END: Arabic Prompt Configuration ---
         });
       });
     </script>
