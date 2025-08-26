@@ -73,6 +73,15 @@
         </div>
     </main>
 
+    <div id="image-viewer-modal" class="modal fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden p-4">
+        <div class="relative bg-white p-2 rounded-lg max-w-3xl w-full modal-content">
+            <button onclick="closeModal('image-viewer-modal')" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-800 shadow-lg z-10">
+                <i class="fas fa-times w-6 h-6"></i>
+            </button>
+            <img id="modal-image" src="" alt="معاينة الصورة" class="w-full h-auto max-h-[85vh] object-contain rounded">
+        </div>
+    </div>
+
     <div id="edit-item-modal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 hidden p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
             <div class="p-6">
@@ -113,6 +122,11 @@
         const auth = getAuth(app);
 
         window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+        window.openImageModal = (imageUrl) => {
+            if (!imageUrl || imageUrl.includes('placehold.co')) return;
+            document.getElementById('modal-image').src = imageUrl;
+            document.getElementById('image-viewer-modal').classList.remove('hidden');
+        };
 
         onAuthStateChanged(auth, user => {
             if (user) {
@@ -142,7 +156,7 @@
 
         function initAdminPanel() {
             setupTabs();
-            loadTabContent('doctors'); // Start with doctors tab
+            loadTabContent('doctors');
         }
 
         function setupTabs() {
@@ -187,6 +201,11 @@
                 alert('تم الحذف بنجاح.');
             }
         };
+        
+        const toggleFeature = async (itemId, currentStatus) => {
+             await updateDoc(doc(db, "services", itemId), { isFeatured: !currentStatus });
+             alert('تم تحديث حالة التمييز بنجاح!');
+        };
 
         const openEditModal = async (collectionName, itemId) => {
             const itemDoc = await getDoc(doc(db, collectionName, itemId));
@@ -200,17 +219,38 @@
                     { id: 'specialty', label: 'التخصص', value: data.specialty },
                     { id: 'phones', label: 'الهواتف (افصل بينها بفاصلة)', value: (data.phones || []).join(', ') },
                     { id: 'cities', label: 'المدن (افصل بينها بفاصلة)', value: (data.cities || []).join(', ') },
-                    { id: 'addresses', label: 'العناوين', value: (data.addresses || []).map(a => `${a.branch}:${a.details}`).join('\n'), type: 'textarea' },
+                    { id: 'addresses', label: 'العناوين (كل فرع في سطر)', value: (data.addresses || []).map(a => `${a.branch}:${a.details}`).join('\n'), type: 'textarea' },
                     { id: 'notes', label: 'ملاحظات', value: data.notes, type: 'textarea' }
                 ],
-                services: [ /* ... existing definitions ... */ ],
-                events: [ /* ... existing definitions ... */ ],
-                bazar_items: [ /* ... existing definitions ... */ ]
+                services: [
+                    { id: 'name', label: 'الاسم', value: data.name },
+                    { id: 'profession', label: 'المهنة', value: data.profession },
+                    { id: 'phone', label: 'الهاتف', value: data.phone },
+                    { id: 'whatsappPhone', label: 'واتساب', value: data.whatsappPhone },
+                    { id: 'address', label: 'العنوان', value: data.address },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' }
+                ],
+                events: [
+                    { id: 'title', label: 'العنوان', value: data.title },
+                    { id: 'category', label: 'الفئة', value: data.category, type: 'select', options: ['social', 'announcement', 'lostfound'] },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' },
+                    { id: 'contactInfo', label: 'معلومات التواصل', value: data.contactInfo }
+                ],
+                bazar_items: [
+                    { id: 'title', label: 'العنوان', value: data.title },
+                    { id: 'price', label: 'السعر', value: data.price, type: 'number' },
+                    { id: 'description', label: 'الوصف', value: data.description, type: 'textarea' },
+                    { id: 'contactPhone', label: 'هاتف التواصل', value: data.contactPhone }
+                ]
             };
             
             const typeKey = collectionName.replace('pending_', '');
             fieldsContainer.innerHTML = fieldDefinitions[typeKey].map(f => {
-                 return `<div><label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>${f.type === 'textarea' ? `<textarea id="edit-${f.id}" name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg">${f.value || ''}</textarea>` : `<input type="${f.type || 'text'}" id="edit-${f.id}" name="${f.id}" value="${f.value || ''}" class="w-full px-3 py-2 border rounded-lg">`}</div>`;
+                if (f.type === 'select') {
+                    const optionLabels = { social: 'مناسبة اجتماعية', announcement: 'إعلان هام', lostfound: 'مفقودات' };
+                    return `<div><label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label><select id="edit-${f.id}" name="${f.id}" class="w-full px-3 py-2 border bg-white rounded-lg">${f.options.map(o => `<option value="${o}" ${o === f.value ? 'selected' : ''}>${optionLabels[o] || o}</option>`).join('')}</select></div>`;
+                }
+                return `<div><label for="edit-${f.id}" class="block text-sm font-bold text-gray-700 mb-1">${f.label}</label>${f.type === 'textarea' ? `<textarea id="edit-${f.id}" name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg">${f.value || ''}</textarea>` : `<input type="${f.type || 'text'}" id="edit-${f.id}" name="${f.id}" value="${f.value || ''}" class="w-full px-3 py-2 border rounded-lg">`}</div>`;
             }).join('');
 
             document.getElementById('edit-item-form').dataset.collection = collectionName;
@@ -247,7 +287,6 @@
             }
         });
 
-
         function createManagementUI(container, tabName, titlePending, titleApproved, pendingColl, approvedColl, cardCreator) {
             container.innerHTML = `<h2 class="text-2xl font-bold mb-4">${titlePending} (<span id="${tabName}-pending-count">0</span>)</h2><div id="${tabName}-pending-container" class="space-y-4 mb-12"></div><h2 class="text-2xl font-bold mb-4">${titleApproved} (<span id="${tabName}-approved-count">0</span>)</h2><div id="${tabName}-approved-container" class="space-y-4"></div>`;
             listenForCollection(pendingColl, `${tabName}-pending-container`, `${tabName}-pending-count`, cardCreator);
@@ -279,8 +318,8 @@
 
         function createCard(data, contentHtml, actions) {
             const div = document.createElement('div');
-            div.className = 'bg-white p-4 rounded-lg shadow-md flex items-start justify-between flex-wrap gap-4';
-            div.innerHTML = `<div class="flex-grow min-w-[250px]">${contentHtml}</div><div class="flex gap-2 flex-shrink-0">${actions.join('')}</div>`;
+            div.className = 'bg-white p-4 rounded-lg shadow-md flex items-start sm:items-center justify-between flex-col sm:flex-row gap-4';
+            div.innerHTML = `<div class="flex items-center gap-4 flex-grow min-w-[200px]">${data.imageUrl ? `<button onclick="openImageModal('${data.imageUrl}')" class="focus:outline-none flex-shrink-0"><img src="${data.imageUrl}" alt="صورة مصغرة" class="w-16 h-16 rounded-lg object-cover bg-gray-200 hover:opacity-80 transition-opacity"></button>`: ''}<div class="flex-grow">${contentHtml}</div></div><div class="flex gap-2 flex-shrink-0 self-end sm:self-center">${actions.join('')}</div>`;
             return div;
         }
 
@@ -295,15 +334,46 @@
             return createCard(data, content, actions.filter(Boolean));
         }
 
-        function createServiceCard(data, collectionName) { /* ... existing function ... */ }
-        function createEventCard(data, collectionName) { /* ... existing function ... */ }
-        function createBazarCard(data, collectionName) { /* ... existing function ... */ }
+        // ## FIXED: Added complete function definitions for other cards
+        function createServiceCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.name} (${data.profession})</p><p class="text-sm text-gray-600">${data.phone}</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="service" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                !isPending ? `<button data-action="feature" data-id="${data.id}" data-featured="${data.isFeatured || false}" class="${data.isFeatured ? 'bg-yellow-500' : 'bg-gray-400'} text-white px-3 py-1 rounded text-sm">${data.isFeatured ? 'مميز' : 'تمييز'}</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
+        
+        function createEventCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.title}</p><p class="text-sm text-gray-600">${data.category}</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="event" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
+
+        function createBazarCard(data, collectionName) {
+            const isPending = collectionName.startsWith('pending');
+            const content = `<p class="font-bold">${data.title}</p><p class="text-sm text-teal-600 font-semibold">${data.price} جنيه</p>`;
+            const actions = [
+                isPending ? `<button data-action="approve" data-id="${data.id}" data-type="bazar" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">موافقة</button>` : '',
+                `<button data-action="edit" data-id="${data.id}" data-collection="${collectionName}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">تعديل</button>`,
+                `<button data-action="delete" data-id="${data.id}" data-collection="${collectionName}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">حذف</button>`
+            ];
+            return createCard(data, content, actions.filter(Boolean));
+        }
 
         document.getElementById('admin-content').addEventListener('click', (e) => {
             const target = e.target.closest('button');
             if (!target) return;
 
-            const { action, id, type, collection } = target.dataset;
+            const { action, id, type, collection, featured } = target.dataset;
             const collectionsMap = {
                 doctor: { pending: 'pending_doctors', approved: 'doctors' },
                 service: { pending: 'pending_services', approved: 'services' },
@@ -316,8 +386,12 @@
                 approveItem(pending, approved, id);
             } else if (action === 'delete') {
                 deleteItem(collection, id);
+            } else if (action === 'feature') {
+                toggleFeature(id, featured === 'true');
             } else if (action === 'edit') {
                 openEditModal(collection, id);
+            } else if (action === 'view-image') {
+                openImageModal(target.dataset.url);
             }
         });
 
