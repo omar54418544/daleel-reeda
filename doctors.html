@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل أطباء المنيا - خدمات قرية ريدة اونلاين</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .hidden { display: none; }
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 8px solid #f3f3f3;
+            border-top-color: #14b8a6;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-teal-600">دليل أطباء وعيادات المنيا</h1>
+            <a href="index.html" class="text-gray-600 hover:text-teal-600">
+                <i class="fas fa-home mr-2"></i>العودة للرئيسية
+            </a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-6 rounded-lg shadow-lg mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold">هل أنت طبيب أو لديك عيادة؟</h2>
+                <p class="mt-1">ساهم في إثراء الدليل وأضف بياناتك ليصل إليها الجميع بسهولة.</p>
+            </div>
+            <a href="add-doctor.html" class="bg-white text-teal-600 font-bold py-3 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 flex-shrink-0">
+                <i class="fas fa-plus-circle mr-2"></i>
+                أضف دكتور أو عيادة الآن
+            </a>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-md mb-8 sticky top-[76px] z-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="name-search" placeholder="ابحث باسم الطبيب..." class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <select id="specialty-filter" class="w-full p-3 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="all">كل التخصصات</option>
+                    <optgroup label="تخصصات طب الأسنان">
+                        <option value="أسنان">أسنان عام</option>
+                        <option value="أسنان وتقويم">تقويم أسنان</option>
+                        <option value="طب وجراحة الفم والأسنان">جراحة فم وأسنان</option>
+                    </optgroup>
+                    <optgroup label="التخصصات الجراحية">
+                        <option value="الجراحة العامة">جراحة عامة</option>
+                        <option value="جراحة أوعية دموية">جراحة أوعية دموية</option>
+                        <option value="جراحة أورام">جراحة أورام</option>
+                        <option value="جراحة أطفال">جراحة أطفال</option>
+                        <option value="جراحة تجميل">جراحة تجميل</option>
+                        <option value="جراحة قلب وصدر">جراحة قلب وصدر</option>
+                        <option value="جراحة مخ وأعصاب">جراحة مخ وأعصاب</option>
+                        <option value="جراحة عمود فقري">جراحة عمود فقري</option>
+                        <option value="جراحة وجه وفكين">جراحة وجه وفكين</option>
+                    </optgroup>
+                    <optgroup label="التخصصات الباطنية">
+                        <option value="باطنة">باطنة عام</option>
+                        <option value="قلب وأوعية دموية">قلب وأوعية دموية</option>
+                        <option value="الجهاز الهضمي والكبد">جهاز هضمي وكبد</option>
+                        <option value="أمراض الصدر والحساسية">صدر وحساسية</option>
+                        <option value="صدر">صدر</option>
+                        <option value="أمراض دم">أمراض دم</option>
+                        <option value="سكر وغدد صماء">سكر وغدد صماء</option>
+                    </optgroup>
+                    <optgroup label="تخصصات أخرى">
+                        <option value="أطفال وحديثي الولادة">أطفال وحديثي الولادة</option>
+                        <option value="أنف وأذن وحنجرة">أنف وأذن وحنجرة</option>
+                        <option value="نساء وتوليد">نساء وتوليد</option>
+                        <option value="عيون">عيون</option>
+                        <option value="عظام">عظام</option>
+                        <option value="مسالك بولية">مسالك بولية</option>
+                        <option value="مخ وأعصاب">مخ وأعصاب</option>
+                        <option value="نفسية وعصبية">نفسية وعصبية</option>
+                        <option value="الطب النفسي">الطب النفسي</option>
+                        <option value="جلدية وتجميل">جلدية وتجميل</option>
+                        <option value="علاج طبيعي وإصابات ملاعب">علاج طبيعي</option>
+                        <option value="تخسيس وتغذية">تخسيس وتغذية</option>
+                        <option value="روماتيزم">روماتيزم</option>
+                        <option value="سمع واتزان">سمع واتزان</option>
+                    </optgroup>
+                </select>
+                <select id="city-filter" class="w-full p-3 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="all">كل المدن والمناطق</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading-indicator" class="text-center py-12 hidden">
+            <div class="spinner"></div>
+            <p class="text-gray-500 mt-4">جاري البحث...</p>
+        </div>
+        
+        <div id="initial-message" class="text-center py-12">
+             <i class="fas fa-search text-5xl text-gray-300"></i>
+             <p class="text-gray-500 mt-4 text-xl">استخدم فلاتر البحث بالأعلى لعرض بيانات الأطباء</p>
+        </div>
+
+        <div id="doctors-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <p id="no-results" class="text-center text-gray-500 py-12 text-xl hidden">لا توجد نتائج تطابق بحثك.</p>
+
+    </main>
+    
+    <footer class="bg-gray-800 text-white mt-12 pt-12 pb-6">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500">&copy; ٢٠٢٥ - جميع الحقوق محفوظة لخدمات قرية ريدة اونلاين.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const nameSearch = document.getElementById('name-search');
+        const specialtyFilter = document.getElementById('specialty-filter');
+        const cityFilter = document.getElementById('city-filter');
+        const container = document.getElementById('doctors-container');
+        const loading = document.getElementById('loading-indicator');
+        const noResults = document.getElementById('no-results');
+        const initialMessage = document.getElementById('initial-message');
+
+        let isAuthReady = false;
+
+        // ## NEW: Specialty to Icon mapping
+        const specialtyIcons = {
+            "أسنان": "fas fa-tooth",
+            "أسنان وتقويم": "fas fa-teeth-open",
+            "طب وجراحة الفم والأسنان": "fas fa-tooth",
+            "الجراحة العامة": "fas fa-briefcase-medical",
+            "جراحة أوعية دموية": "fas fa-heartbeat",
+            "جراحة أورام": "fas fa-ribbon",
+            "جراحة أطفال": "fas fa-child",
+            "جراحة تجميل": "fas fa-star",
+            "جراحة قلب وصدر": "fas fa-lungs",
+            "جراحة مخ وأعصاب": "fas fa-brain",
+            "جراحة عمود فقري": "fas fa-bone",
+            "جراحة وجه وفكين": "fas fa-jaw",
+            "باطنة": "fas fa-stethoscope",
+            "قلب وأوعية دموية": "fas fa-heart-pulse",
+            "الجهاز الهضمي والكبد": "fas fa-bacterium",
+            "أمراض الصدر والحساسية": "fas fa-lungs",
+            "صدر": "fas fa-lungs",
+            "أمراض دم": "fas fa-tint",
+            "سكر وغدد صماء": "fas fa-syringe",
+            "أطفال وحديثي الولادة": "fas fa-baby",
+            "أنف وأذن وحنجرة": "fas fa-ear-listen",
+            "نساء وتوليد": "fas fa-person-pregnant",
+            "عيون": "fas fa-eye",
+            "عظام": "fas fa-bone",
+            "مسالك بولية": "fas fa-toilet",
+            "مخ وأعصاب": "fas fa-brain",
+            "نفسية وعصبية": "fas fa-head-side-virus",
+            "الطب النفسي": "fas fa-user-md",
+            "جلدية وتجميل": "fas fa-spa",
+            "علاج طبيعي وإصابات ملاعب": "fas fa-running",
+            "تخسيس وتغذية": "fas fa-apple-alt",
+            "روماتيزم": "fas fa-joint",
+            "سمع واتزان": "fas fa-assistive-listening-systems",
+            "default": "fas fa-clinic-medical"
+        };
+
+        // ## NEW: Copy to clipboard function
+        window.copyToClipboard = function(text, buttonElement) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const originalContent = buttonElement.innerHTML;
+                buttonElement.innerHTML = `<i class="fas fa-check"></i> تم النسخ`;
+                buttonElement.classList.add('bg-green-500', 'hover:bg-green-600');
+                buttonElement.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+                setTimeout(() => {
+                    buttonElement.innerHTML = originalContent;
+                    buttonElement.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    buttonElement.classList.add('bg-gray-400', 'hover:bg-gray-500');
+                }, 2000);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                alert('فشل نسخ الرقم');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        async function populateCityFilter() {
+            try {
+                const q = query(collection(db, "doctors"));
+                const querySnapshot = await getDocs(q);
+                const cities = new Set();
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.cities && Array.isArray(data.cities)) {
+                        data.cities.forEach(city => cities.add(city));
+                    }
+                });
+
+                const sortedCities = Array.from(cities).sort((a, b) => a.localeCompare(b, 'ar'));
+                sortedCities.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c;
+                    option.textContent = c;
+                    cityFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error populating city filter:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isAuthReady = true;
+                console.log("Authentication successful.");
+                populateCityFilter();
+            } else {
+                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            }
+        });
+
+        async function searchDoctors() {
+            if (!isAuthReady) {
+                setTimeout(searchDoctors, 200);
+                return;
+            }
+
+            const nameQuery = nameSearch.value.toLowerCase().trim();
+            const specialtyQuery = specialtyFilter.value;
+            const cityQuery = cityFilter.value;
+
+            if (nameQuery === '' && specialtyQuery === 'all' && cityQuery === 'all') {
+                container.innerHTML = '';
+                noResults.classList.add('hidden');
+                initialMessage.classList.remove('hidden');
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            container.innerHTML = '';
+            noResults.classList.add('hidden');
+            initialMessage.classList.add('hidden');
+
+            try {
+                let q = query(collection(db, "doctors"));
+
+                if (specialtyQuery !== 'all') {
+                    q = query(q, where("specialty", "==", specialtyQuery));
+                }
+                if (cityQuery !== 'all') {
+                    q = query(q, where("cities", "array-contains", cityQuery));
+                }
+                
+                const querySnapshot = await getDocs(q);
+                let results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (nameQuery !== '') {
+                    results = results.filter(doc => doc.name && doc.name.toLowerCase().includes(nameQuery));
+                }
+                
+                results.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+                renderDoctors(results);
+
+            } catch (error) {
+                console.error("Error fetching doctors:", error);
+                if (error.code === 'failed-precondition') {
+                     container.innerHTML = `<p class="text-red-500 text-center col-span-full"><b>خطأ في البحث:</b> يتطلب هذا الفلتر المركب إنشاء فهرس في قاعدة البيانات. يرجى مراجعة وحدة التحكم في Firebase واتباع الرابط لإنشاء الفهرس المطلوب.</p>`;
+                } else {
+                     container.innerHTML = `<p class="text-red-500 text-center col-span-full">حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.</p>`;
+                }
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderDoctors(doctors) {
+            container.innerHTML = '';
+            if (doctors.length === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            doctors.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-lg shadow-md border-t-4 border-teal-500 flex flex-col';
+                
+                // ## MODIFIED: Added copy button next to phone number
+                const phonesHTML = doc.phones && doc.phones.length > 0
+                    ? doc.phones.map(phone => `
+                        <div class="flex items-center gap-2 mb-2">
+                            <a href="tel:${phone}" class="flex-grow text-center bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition text-lg">
+                                <i class="fas fa-phone-alt mr-2"></i>${phone}
+                            </a>
+                            <button onclick="copyToClipboard('${phone}', this)" class="flex-shrink-0 bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500 transition">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>`).join('')
+                    : '<p class="text-gray-500 text-center">لا يوجد رقم هاتف</p>';
+
+                const addressesHTML = doc.addresses && doc.addresses.length > 0
+                    ? doc.addresses.map(addr => `
+                        <div class="mt-2">
+                            <p class="font-bold">${addr.branch || ''}</p>
+                            <p class="text-gray-600">${addr.details || ''}</p>
+                        </div>`).join('')
+                    : '';
+
+                // ## MODIFIED: Added specialty icon
+                const iconClass = specialtyIcons[doc.specialty] || specialtyIcons['default'];
+
+                card.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">${doc.name}</h3>
+                                <p class="text-md text-teal-600 font-semibold">${doc.specialty}</p>
+                            </div>
+                            <i class="${iconClass} text-3xl text-teal-300"></i>
+                        </div>
+                        <div class="border-t pt-3 mt-3">
+                            ${phonesHTML}
+                        </div>
+                        <div class="border-t pt-3 mt-3">
+                            <h4 class="text-sm font-bold text-gray-500 mb-1">العناوين</h4>
+                            ${addressesHTML}
+                        </div>
+                    </div>
+                    ${doc.notes ? `<div class="mt-auto pt-3"><div class="bg-gray-100 p-3 rounded-lg text-sm text-gray-700">${doc.notes}</div></div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        nameSearch.addEventListener('input', searchDoctors);
+        specialtyFilter.addEventListener('change', searchDoctors);
+        cityFilter.addEventListener('change', searchDoctors);
+        
+    </script>
+</body>
+</html>

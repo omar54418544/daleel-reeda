@@ -33,7 +33,6 @@
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "45257fa1-4324-47da-9a57-b52b9cf5cf6a",
-          // --- START: Arabic Prompt Configuration ---
           promptOptions: {
             slidedown: {
               enabled: true,
@@ -42,7 +41,6 @@
               cancelButtonText: "رفض",
             },
           },
-          // --- END: Arabic Prompt Configuration ---
         });
       });
     </script>
@@ -131,13 +129,12 @@
             transition: opacity 0.5s ease-in-out;
         }
         main {
-            padding-top: 112px; /* Adjusted for the new fixed header height */
+            padding-top: 112px;
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <!-- ## MODIFIED: Header is now fixed and combines both bars -->
     <header class="fixed top-0 w-full z-50 shadow-lg">
         <div id="add-service-banner" class="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
             <div class="container mx-auto px-4 py-2 flex items-center justify-center text-center">
@@ -155,6 +152,7 @@
                 <div class="hidden md:flex items-center space-x-6 space-x-reverse">
                     <a href="#hero" class="text-gray-700 hover:text-teal-600">الرئيسية</a>
                     <a href="#search-section" class="text-gray-700 hover:text-teal-600">بحث بالدليل</a>
+                    <a href="doctors.html" class="text-gray-700 hover:text-teal-600 font-bold">دليل الأطباء</a>
                     <a href="#community-services" class="text-gray-700 hover:text-teal-600">خدمات المجتمع</a>
                     <a href="polls.html" class="text-gray-700 hover:text-teal-600">استطلاعات الرأي</a>
                 </div>
@@ -163,13 +161,13 @@
         <div id="mobile-menu" class="md:hidden menu-hidden bg-white/90 backdrop-blur-sm">
             <a href="#hero" class="block py-2 px-4 text-sm hover:bg-teal-50">الرئيسية</a>
             <a href="#search-section" class="block py-2 px-4 text-sm hover:bg-teal-50">بحث بالدليل</a>
+            <a href="doctors.html" class="block py-2 px-4 text-sm hover:bg-teal-50 font-bold">دليل الأطباء</a>
             <a href="#community-services" class="block py-2 px-4 text-sm hover:bg-teal-50">خدمات المجتمع</a>
             <a href="polls.html" class="block py-2 px-4 text-sm hover:bg-teal-50">استطلاعات الرأي</a>
         </div>
     </header>
 
     <main>
-        <!-- Hero Section -->
         <section id="hero" class="relative text-white" style="height: 50vh;">
             <div class="animated-bg">
                 <div class="circle circle-sm"></div>
@@ -192,7 +190,21 @@
             </div>
         </section>
 
-        <!-- Search Section -->
+        <!-- ## MODIFIED: Medical Services Section -->
+        <section id="medical-services" class="py-16 bg-teal-50">
+            <div class="container mx-auto px-6 text-center">
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-5xl text-teal-500 mb-4"><i class="fas fa-heartbeat"></i></div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">هل تبحث عن طبيب أو عيادة؟</h2>
+                    <p class="text-gray-600 mb-6">لأن صحتكم تهمنا، قمنا بتجميع دليل شامل لأطباء وعيادات المنيا في مختلف التخصصات لتسهيل الوصول إليهم.</p>
+                    <a href="doctors.html" class="bg-teal-600 text-white font-bold py-3 px-8 rounded-full hover:bg-teal-700 shadow-lg transition duration-300 inline-block text-lg">
+                        <i class="fas fa-search mr-2"></i>
+                        ابحث عن دكتور أو عيادة في المنيا
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <section id="search-section" class="py-16 bg-white">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-8">
@@ -246,7 +258,6 @@
             </div>
         </section>
 
-        <!-- Other Sections -->
         <section class="bg-teal-50 py-16">
             <div class="container mx-auto px-6 text-center">
                 <div class="max-w-2xl mx-auto">
@@ -311,7 +322,6 @@
             </div>
         </section>
         
-        <!-- Image Viewer Modal -->
         <div id="image-viewer-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden p-4 transition-opacity duration-300">
             <div class="relative bg-white p-2 rounded-lg max-w-lg w-full">
                 <button id="close-modal-btn" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-800 shadow-lg">
@@ -322,7 +332,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer id="contact" class="bg-gray-800 text-white pt-12 pb-6">
         <div class="container mx-auto px-6 text-center">
             <div class="mb-8">
@@ -336,7 +345,6 @@
         </div>
     </footer>
 
-    <!-- Temporary APK Download Banner -->
     <div id="apk-download-banner" class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-3 flex items-center justify-between shadow-lg z-40 md:hidden transform transition-transform duration-500 translate-y-full">
         <div class="flex items-center">
             <img src="icons/icon-192x192.png" alt="App Icon" class="w-10 h-10 rounded-lg ml-3">
@@ -383,7 +391,6 @@
         }
         setupPWA();
 
-        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
             authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
@@ -397,21 +404,18 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- DOM Elements ---
         const nameSearchInput = document.getElementById('name-search');
         const categoryFilter = document.getElementById('category-filter');
         const resultsContainer = document.getElementById('search-results');
         const loadingIndicator = document.getElementById('loading-indicator');
         const viewAllContainer = document.getElementById('view-all-container');
         
-        // --- State ---
         const standardProfessions = ["طبيب", "صيدلية", "ممرض", "كهربائي", "سباك", "نجار", "نقاش", "حداد", "بنّاء", "مبلط سيراميك", "مبيض محارة", "سوبر ماركت", "مخبز", "جزار", "شخصية هامة", "مدرس", "مهندس", "سائق"];
-        let rotatorPool = []; // Pool of items for the rotator
+        let rotatorPool = [];
         let rotatorInterval = null;
         const ROTATOR_POOL_SIZE = 30;
         const DISPLAY_SIZE = 6;
 
-        // --- Core Functions ---
         async function authenticateAndFetch() {
             try {
                 await signInAnonymously(auth);
@@ -552,7 +556,6 @@
             resultsContainer.classList.add('hidden');
         }
 
-        // --- Event Listeners ---
         categoryFilter.addEventListener('change', fetchAndDisplayResults);
         nameSearchInput.addEventListener('input', fetchAndDisplayResults);
         
@@ -563,7 +566,6 @@
         };
         document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('image-viewer-modal').classList.add('hidden'));
 
-        // --- Initial Load ---
         authenticateAndFetch();
     </script>
 
