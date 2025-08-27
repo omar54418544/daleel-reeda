@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلب متبرعين بالدم - خدمات قرية ريدة اونلاين</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .step-container { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .spinner {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 3px solid rgba(220, 38, 38, 0.3); border-top-color: #dc2626;
+            animation: spin 1s linear infinite; display: inline-block; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-teal-600">خدمات قرية ريدة اونلاين</h1>
+            <a href="index.html" class="text-gray-600 hover:text-teal-600">&larr; العودة للرئيسية</a>
+        </nav>
+    </header>
+
+    <main class="py-12">
+        <div class="container mx-auto px-6">
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+
+                <!-- Step 1: Phone Verification -->
+                <div id="step-1" class="step-container">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt fa-3x text-teal-500 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-800">التحقق من الهوية</h2>
+                        <p class="text-gray-600 mt-2 mb-6">للحفاظ على خصوصية المتبرعين، يرجى إدخال رقم هاتفك المسجل في دليل القرية للمتابعة.</p>
+                    </div>
+                    <form id="verify-phone-form" class="space-y-4">
+                        <div>
+                            <label for="requester-phone" class="block font-bold text-gray-700 mb-1">رقم الهاتف</label>
+                            <input type="tel" id="requester-phone" placeholder="أدخل رقم هاتفك المسجل" class="w-full p-3 border border-gray-300 rounded-lg text-center text-lg tracking-wider" required>
+                        </div>
+                        <button type="submit" id="verify-btn" class="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-700 flex items-center justify-center text-lg">
+                            <span id="verify-btn-text">التحقق والمتابعة</span>
+                            <div id="verify-spinner" class="spinner hidden"></div>
+                        </button>
+                        <div id="verify-error" class="text-red-500 text-center text-sm hidden bg-red-50 p-4 rounded-lg"></div>
+                    </form>
+                </div>
+
+                <!-- Step 2: Blood Type Selection & Results -->
+                <div id="step-2" class="step-container hidden">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-800">تم التحقق بنجاح!</h2>
+                        <p class="text-gray-600 mt-2">مرحباً بك <span id="requester-name" class="font-bold"></span>. اختر الآن فصيلة الدم المطلوبة للبحث عن المتبرعين.</p>
+                    </div>
+                    <div class="mb-8">
+                        <label for="blood-type-search" class="block font-bold text-gray-700 mb-2 text-center text-lg">اختر الفصيلة المطلوبة:</label>
+                        <select id="blood-type-search" class="w-full p-3 border bg-white border-gray-300 rounded-lg text-lg">
+                            <option value="">-- اختر --</option>
+                            <option value="all">كل الفصائل</option>
+                            <option value="A+">A+</option><option value="A-">A-</option>
+                            <option value="B+">B+</option><option value="B-">B-</option>
+                            <option value="O+">O+</option><option value="O-">O-</option>
+                            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div id="results-container">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
+            authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
+            projectId: "gleaming-bus-468404-u7",
+            storageBucket: "gleaming-bus-468404-u7.appspot.com",
+            messagingSenderId: "143708510584",
+            appId: "1:14389c2a63a53797e2908d"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const step1 = document.getElementById('step-1');
+        const step2 = document.getElementById('step-2');
+        const verifyForm = document.getElementById('verify-phone-form');
+        const verifyBtn = document.getElementById('verify-btn');
+        const verifyBtnText = document.getElementById('verify-btn-text');
+        const verifySpinner = document.getElementById('verify-spinner');
+        const verifyError = document.getElementById('verify-error');
+        const bloodTypeSearch = document.getElementById('blood-type-search');
+        const resultsContainer = document.getElementById('results-container');
+
+        // Step 1: Handle phone verification (Logic remains the same)
+        verifyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('requester-phone').value.trim();
+            
+            verifyBtn.disabled = true;
+            verifyBtnText.textContent = 'جار التحقق...';
+            verifySpinner.classList.remove('hidden');
+            verifyError.classList.add('hidden');
+
+            try {
+                const servicesRef = collection(db, "services");
+                const q = query(servicesRef, where("phone", "==", phone));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    verifyError.innerHTML = `
+                        <p class="mb-3">هذا الرقم غير مسجل في دليل القرية.</p>
+                        <p class="mb-4 font-bold">لإكمال الطلب، يجب أن تكون بياناتك مسجلة أولاً.</p>
+                        <a href="add-service.html" class="inline-block bg-orange-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-orange-600">
+                            اضغط هنا لتسجيل بياناتك الآن
+                        </a>
+                    `;
+                    verifyError.classList.remove('hidden');
+                } else {
+                    const requesterData = querySnapshot.docs[0].data();
+                    document.getElementById('requester-name').textContent = requesterData.name;
+                    step1.classList.add('hidden');
+                    step2.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Verification error: ", error);
+                verifyError.innerHTML = '<p>حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.</p>';
+                verifyError.classList.remove('hidden');
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtnText.textContent = 'التحقق والمتابعة';
+                verifySpinner.classList.add('hidden');
+            }
+        });
+
+        // Step 2: Handle blood type search (UPDATED LOGIC)
+        bloodTypeSearch.addEventListener('change', async () => {
+            const selectedBloodType = bloodTypeSearch.value;
+            if (!selectedBloodType) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            resultsContainer.innerHTML = `<div class="text-center py-8"><div class="spinner inline-block"></div><p class="mt-2">جاري البحث عن المتبرعين...</p></div>`;
+
+            try {
+                const donorsRef = collection(db, "donors");
+                let q;
+                
+                if (selectedBloodType === 'all') {
+                    // Query for all donors without a 'where' clause for blood type
+                    q = query(donorsRef);
+                } else {
+                    // Query for a specific blood type
+                    q = query(donorsRef, where("bloodType", "==", selectedBloodType));
+                }
+                
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    resultsContainer.innerHTML = `<div class="text-center p-6 bg-yellow-100 text-yellow-800 rounded-lg"><p>للأسف، لم نجد متبرعين مسجلين يطابقون هذا البحث حالياً.</p></div>`;
+                } else {
+                    let resultsHTML = '<h3 class="font-bold text-xl mb-4 text-center">قائمة المتبرعين المتاحين</h3><div class="space-y-4">';
+                    querySnapshot.forEach(doc => {
+                        const donor = doc.data();
+                        resultsHTML += `
+                            <div class="bg-gray-50 border rounded-lg p-4 flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-lg">${donor.name} 
+                                        <span class="font-mono text-red-600">(${donor.bloodType})</span>
+                                    </p>
+                                    <p class="text-sm text-gray-500">آخر تبرع: ${donor.lastDonationTime}</p>
+                                </div>
+                                <a href="tel:${donor.phone}" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 flex items-center gap-2">
+                                    <i class="fas fa-phone"></i>
+                                    <span>اتصال</span>
+                                </a>
+                            </div>
+                        `;
+                    });
+                    resultsHTML += '</div>';
+                    resultsContainer.innerHTML = resultsHTML;
+                }
+            } catch (error) {
+                console.error("Search error: ", error);
+                resultsContainer.innerHTML = `<div class="text-center p-6 bg-red-100 text-red-800 rounded-lg"><p>حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</p></div>`;
+            }
+        });
+    </script>
+
+</body>
+</html>
