@@ -61,6 +61,10 @@
                     <button data-tab="services" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">إدارة الدليل</button>
                     <button data-tab="events" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">إدارة المناسبات</button>
                     <button data-tab="bazar" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700">إدارة السوق</button>
+                    <!-- ## NEW: Donors Tab ## -->
+                    <button data-tab="donors" class="tab-btn whitespace-nowrap py-4 px-3 border-b-2 font-medium text-sm border-transparent text-red-500 hover:text-red-700 font-bold">
+                        <i class="fas fa-hand-holding-droplet mr-1"></i> إدارة المتبرعين
+                    </button>
                 </nav>
             </div>
         </header>
@@ -70,6 +74,8 @@
             <div id="services-tab-content" class="tab-content hidden"></div>
             <div id="events-tab-content" class="tab-content hidden"></div>
             <div id="bazar-tab-content" class="tab-content hidden"></div>
+            <!-- ## NEW: Donors Content Area ## -->
+            <div id="donors-tab-content" class="tab-content hidden"></div>
         </div>
     </main>
 
@@ -105,7 +111,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, addDoc, deleteDoc, updateDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, deleteDoc, updateDoc, serverTimestamp, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
         const firebaseConfig = {
@@ -120,6 +126,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // Make deleteDonor globally accessible
+        window.deleteDonor = async (id) => {
+            if (confirm('هل أنت متأكد من حذف هذا المتبرع؟ هذه العملية لا يمكن التراجع عنها.')) {
+                try {
+                    await deleteDoc(doc(db, "donors", id));
+                    alert('تم حذف المتبرع بنجاح.');
+                } catch (error) {
+                    console.error("Error deleting donor: ", error);
+                    alert('حدث خطأ أثناء الحذف.');
+                }
+            }
+        };
 
         window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
         window.openImageModal = (imageUrl) => {
@@ -179,9 +198,12 @@
                 doctors: loadDoctorsManagement,
                 services: loadServicesManagement,
                 events: loadEventsManagement,
-                bazar: loadBazarManagement
+                bazar: loadBazarManagement,
+                donors: loadDonorsManagement // ## NEW: Add donor loader
             };
-            loaders[tabName](container);
+            if (loaders[tabName]) {
+                loaders[tabName](container);
+            }
         }
 
         const approveItem = async (pendingColl, approvedColl, itemId) => {
@@ -333,8 +355,7 @@
             ];
             return createCard(data, content, actions.filter(Boolean));
         }
-
-        // ## FIXED: Added complete function definitions for other cards
+        
         function createServiceCard(data, collectionName) {
             const isPending = collectionName.startsWith('pending');
             const content = `<p class="font-bold">${data.name} (${data.profession})</p><p class="text-sm text-gray-600">${data.phone}</p>`;
@@ -368,12 +389,102 @@
             ];
             return createCard(data, content, actions.filter(Boolean));
         }
+        
+        // ## NEW: Function to load and manage blood donors ##
+        function loadDonorsManagement(container) {
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                     <h2 class="text-2xl font-bold">قائمة المتبرعين بالدم (<span id="donors-count">0</span>)</h2>
+                     <div class="flex items-center gap-2">
+                        <label for="blood-type-filter" class="font-bold text-sm">فلترة حسب الفصيلة:</label>
+                        <select id="blood-type-filter" class="p-2 border bg-white rounded-lg shadow-sm">
+                            <option value="all">كل الفصائل</option>
+                            <option value="A+">A+</option> <option value="A-">A-</option>
+                            <option value="B+">B+</option> <option value="B-">B-</option>
+                            <option value="O+">O+</option> <option value="O-">O-</option>
+                            <option value="AB+">AB+</option> <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg overflow-x-auto">
+                    <table class="min-w-full w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-4 text-right font-bold">الاسم</th>
+                                <th class="p-4 text-right font-bold">فصيلة الدم</th>
+                                <th class="p-4 text-right font-bold">رقم الهاتف</th>
+                                <th class="p-4 text-right font-bold">آخر تبرع</th>
+                                <th class="p-4 text-right font-bold">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donors-table-body">
+                            <!-- Rows will be injected here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const tableBody = document.getElementById('donors-table-body');
+            const filterSelect = document.getElementById('blood-type-filter');
+            const donorsCountSpan = document.getElementById('donors-count');
+            let allDonors = []; 
+
+            const donorsQuery = query(collection(db, "donors"), orderBy("createdAt", "desc"));
+            onSnapshot(donorsQuery, (snapshot) => {
+                allDonors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                donorsCountSpan.textContent = allDonors.length;
+                renderTable(allDonors);
+                filterSelect.dispatchEvent(new Event('change')); // Apply filter after data load
+            });
+
+            filterSelect.addEventListener('change', () => {
+                const selectedType = filterSelect.value;
+                if (selectedType === 'all') {
+                    renderTable(allDonors);
+                } else {
+                    const filteredDonors = allDonors.filter(donor => donor.bloodType === selectedType);
+                    renderTable(filteredDonors);
+                }
+            });
+
+            function renderTable(donors) {
+                tableBody.innerHTML = '';
+                if (donors.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">لا توجد نتائج مطابقة للبحث.</td></tr>';
+                    return;
+                }
+                donors.forEach(donor => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+                    
+                    const lastDonation = donor.lastDonationDate 
+                        ? donor.lastDonationDate.toDate().toLocaleDateString('ar-EG')
+                        : '<span class="text-gray-400">غير محدد</span>';
+
+                    row.innerHTML = `
+                        <td class="p-4 font-semibold">${donor.name}</td>
+                        <td class="p-4 text-red-600 font-mono text-xl font-bold">${donor.bloodType}</td>
+                        <td class="p-4 font-mono text-lg" dir="ltr">${donor.phone}</td>
+                        <td class="p-4 text-sm text-gray-600">${lastDonation}</td>
+                        <td class="p-4">
+                            <a href="tel:${donor.phone}" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">اتصال</a>
+                            <button onclick="deleteDonor('${donor.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 mr-2">حذف</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
 
         document.getElementById('admin-content').addEventListener('click', (e) => {
-            const target = e.target.closest('button');
+            const target = e.target.closest('button, a'); // Listen for buttons and links
             if (!target) return;
 
             const { action, id, type, collection, featured } = target.dataset;
+            
+            if (!action) return; // Exit if no data-action attribute
+
             const collectionsMap = {
                 doctor: { pending: 'pending_doctors', approved: 'doctors' },
                 service: { pending: 'pending_services', approved: 'services' },
