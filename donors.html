@@ -62,7 +62,7 @@
             <!-- Active requests will be loaded here by JavaScript -->
         </div>
 
-        <!-- NEW SECTION: Link to Request Page -->
+        <!-- Link to Request Page -->
         <section class="pb-12 bg-gray-100">
             <div class="container mx-auto px-6 text-center">
                 <div class="max-w-2xl mx-auto p-6 rounded-lg border-2 border-dashed border-teal-400 bg-white">
@@ -86,7 +86,7 @@
                     </div>
                     <div id="message-container" class="hidden p-4 mb-4 rounded-lg"></div>
                     <form id="donation-form" class="space-y-6">
-                        <!-- Form fields remain the same -->
+                        <!-- Form fields -->
                         <div>
                             <label for="donor-name" class="block font-bold text-gray-700 mb-1">الاسم بالكامل</label>
                             <input type="text" id="donor-name" placeholder="اكتب اسمك هنا" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" required>
@@ -139,27 +139,27 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
-        // Firebase config remains the same
+        // ## FIXED: Correct Firebase Configuration ##
         const firebaseConfig = {
             apiKey: "AIzaSyAD8b7VlestkH5JvIwP0MT566DOu4zGtNI",
             authDomain: "gleaming-bus-468404-u7.firebaseapp.com",
             projectId: "gleaming-bus-468404-u7",
             storageBucket: "gleaming-bus-468404-u7.appspot.com",
             messagingSenderId: "143708510584",
-            appId: "1:14389c2a63a53797e2908d"
+            appId: "1:143708510584:web:46389c2a63a53797e2908d"
         };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         // --- Load Active Blood Requests ---
-        // This part remains the same
         const requestsContainer = document.getElementById('active-requests-container');
         const requestsQuery = query(collection(db, "blood_requests"), orderBy("createdAt", "desc"));
 
         onSnapshot(requestsQuery, (snapshot) => {
             requestsContainer.innerHTML = ''; 
             if (snapshot.empty) {
-                // Do not show anything if no requests, the registration form is enough
+                // Do nothing if no requests
             } else {
                 snapshot.forEach(doc => {
                     const request = doc.data();
@@ -197,7 +197,6 @@
         });
 
         // --- Donor Registration Form Logic ---
-        // This part remains the same
         const donationForm = document.getElementById('donation-form');
         const messageContainer = document.getElementById('message-container');
         const submitBtn = document.getElementById('submit-btn');
@@ -217,11 +216,38 @@
 
         donationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // ... form submission logic is unchanged
+            submitBtn.disabled = true;
+            btnText.textContent = 'جاري التسجيل...';
+            btnSpinner.classList.remove('hidden');
+            const donorData = {
+                name: document.getElementById('donor-name').value.trim(),
+                bloodType: document.getElementById('blood-type').value,
+                phone: document.getElementById('donor-phone').value.trim(),
+                lastDonationTime: lastDonationInput.value || "غير محدد",
+                createdAt: serverTimestamp()
+            };
+            try {
+                await addDoc(collection(db, "donors"), donorData);
+                showMessage('success', 'شكراً لك يا بطل! تم تسجيل بياناتك بنجاح. جزاك الله خيراً.');
+                donationForm.reset();
+                dateOptionsContainer.querySelectorAll('.date-option-btn').forEach(btn => btn.classList.remove('selected'));
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showMessage('error', 'حدث خطأ أثناء التسجيل. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = 'تسجيل كمتبرع';
+                btnSpinner.classList.add('hidden');
+            }
         });
 
         function showMessage(type, text) {
-            // ... showMessage logic is unchanged
+            messageContainer.textContent = text;
+            messageContainer.className = type === 'success' 
+                ? 'p-4 mb-4 rounded-lg bg-green-100 text-green-800' 
+                : 'p-4 mb-4 rounded-lg bg-red-100 text-red-800';
+            messageContainer.classList.remove('hidden');
+            window.scrollTo(0, messageContainer.offsetTop - 20);
         }
     </script>
 </body>

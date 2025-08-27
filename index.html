@@ -135,6 +135,18 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
+    <!-- Audio player is now controlled by JavaScript -->
+    <audio id="background-audio" loop>
+        <source src="aud.mp3" type="audio/mpeg">
+        متصفحك لا يدعم تشغيل الصوت.
+    </audio>
+
+    <!-- Audio Control Button -->
+    <button id="audio-toggle-button" class="fixed bottom-8 right-8 z-[100] bg-teal-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-700 transition-transform transform hover:scale-110 focus:outline-none" title="تشغيل/إيقاف الصوت">
+        <i id="audio-icon" class="fas fa-volume-mute text-2xl"></i>
+    </button>
+
+
     <header class="fixed top-0 w-full z-50 shadow-lg">
         <div id="add-service-banner" class="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
             <div class="container mx-auto px-4 py-2 flex items-center justify-center text-center">
@@ -376,6 +388,29 @@
             <span>تحميل</span>
         </a>
     </div>
+
+    <script>
+        // --- Audio Interaction Script ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const audioToggleButton = document.getElementById('audio-toggle-button');
+            const audioIcon = document.getElementById('audio-icon');
+            const audio = document.getElementById('background-audio');
+
+            if (audioToggleButton && audioIcon && audio) {
+                audioToggleButton.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play().catch(error => console.error("فشل تشغيل الصوت:", error));
+                        audioIcon.classList.remove('fa-volume-mute');
+                        audioIcon.classList.add('fa-volume-up');
+                    } else {
+                        audio.pause();
+                        audioIcon.classList.remove('fa-volume-up');
+                        audioIcon.classList.add('fa-volume-mute');
+                    }
+                });
+            }
+        });
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
